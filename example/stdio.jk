@@ -1,0 +1,2 @@
+stdout = "Hello, " ++ stdin ++ "!\n"
+stderr = "Oops...\n"

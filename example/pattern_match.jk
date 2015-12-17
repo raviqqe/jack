@@ -1,0 +1,9 @@
+# Jack's pattern matching just checks if values match without bindings.
+
+coordinates == (1, 2, 3) # returns a bool type value
+# equivalent to...
+coordinates.first == 1 and coordinates.second == 2 and coordinates.third == 3
+
+coordinates < (1, _, 3)
+# equivalent to...
+coordinates.first < 1 and coordinates.third < 3

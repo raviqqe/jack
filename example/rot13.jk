@@ -1,0 +1,10 @@
+rot13 string
+  f x = if "A" <= x <= "Z" then
+          chr (((ord x - ord "A" + 13) mod 26) + ord "A")
+        else if "a" <= x <= "z" then
+          chr (((ord x - ord "a" + 13) mod 26) + ord "a")
+        else
+          x
+  = map f string
+
+stdout = rot13 stdin

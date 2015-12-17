@@ -1,0 +1,4 @@
+outputFile : file "output.txt"
+inputFile : file "input.txt"
+
+outputFile = inputFile
