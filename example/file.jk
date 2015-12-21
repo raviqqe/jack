@@ -1,4 +1,4 @@
-outputFile : file "output.txt"
-inputFile : file "input.txt"
+outputFile : File "output.txt"
+inputFile : File "input.txt"
 
 outputFile = inputFile

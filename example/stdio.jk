@@ -1,2 +1,3 @@
-stdout = "Hello, " ++ stdin ++ "!\n"
-stderr = "Oops...\n"
+x = first stdin
+stdout = ["Hello, " ++ stdin ++ "!"]
+stderr = ["Oops..."]

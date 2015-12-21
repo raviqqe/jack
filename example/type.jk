@@ -1,0 +1,22 @@
+# addition types
+
+Vegetable = String
+Fruit = String
+Edible = Vegetable | Fruit
+
+
+# product types
+
+Name = String
+Height = Real
+FavoriteToy = String
+Pet = Name & Height & FavoriteToy
+
+pet = Pet "John" 60 "ball"
+
+
+# polymorphic types
+
+Vector : Type -> Type
+Vector a = a & a & a
+Maybe a = Nothing | Just a
