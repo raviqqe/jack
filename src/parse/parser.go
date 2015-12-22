@@ -13,7 +13,7 @@ type parserResult interface {}
 
 type position int
 
-type parser func() (parserResult, position, bool)
+type parser func() (bool, parserResult, position)
 
 
 
@@ -21,9 +21,10 @@ type parser func() (parserResult, position, bool)
 
 //// statements
 
-func (s *parserState) statement() parser {
+func (s *parserState) statement(position) parser {
   return func() {
-    result, ok := or(s.typeDeclaration(), s.definition())()
+    result, ok, position := or(s.typeDeclaration(position),
+                               s.definition(position))()
     if !ok {
       s.cacheErrorMessage(
           "Failed to parse a statement. A import, type declaration, "
