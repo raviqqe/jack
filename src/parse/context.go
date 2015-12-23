@@ -9,11 +9,7 @@ import (
 
 
 
-type parserState struct {
-  text string
-  nodes chan<- AstNode
-  errorMessage chan<- string
-
+type Context struct {
   indentLevel int
   indentLiteral string
 
