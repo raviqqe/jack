@@ -1,0 +1,17 @@
+rm = rm -rf
+
+
+rule build_haskell
+  command = ghc --make $in
+
+rule clean
+  command = $rm *.hi *.o a.out Main
+
+rule always
+  command = : running $out target...
+
+
+build jack: build_haskell Main.hs
+build clean: clean
+
+default jack
