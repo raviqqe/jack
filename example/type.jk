@@ -1,22 +1,22 @@
-# addition types
+# variant
 
 Vegetable = String
 Fruit = String
 Edible = Vegetable | Fruit
+Num = Int | Real
+Vector a = Vector a a a
+None = () # None and () is same completely.
+None = () : () # None and () is different.
+Maybe a = None | a
 
 
-# product types
+# record
 
-Name = String
-Height = Real
-FavoriteToy = String
-Pet = Name & Height & FavoriteToy
+Pet = name : String, height : Real, favoriteToy : String
+  run : Pet -> Pet
+  self.run = Pet self.name self.height "boots"
 
-pet = Pet "John" 60 "ball"
+Show Pet
+  self.toString = self.name ++ "likes" ++ self.favoriteToy
 
-
-# polymorphic types
-
-Vector : Type -> Type
-Vector a = a & a & a
-Maybe a = Nothing | Just a
+myPet = Pet "John" 60 "ball"

@@ -1,7 +1,9 @@
+# WIP
+
 rot13 string = map f string
   f x
-    | "A" <= x <= "Z" = chr (((ord x - ord "A" + 13) mod 26) + ord "A")
-    | "a" <= x <= "z" = chr (((ord x - ord "a" + 13) mod 26) + ord "a")
+    | 'A' <= x <= 'Z' = chr (((ord x - ord 'A' + 13) mod 26) + ord 'A')
+    | 'a' <= x <= 'z' = chr (((ord x - ord 'a' + 13) mod 26) + ord 'a')
     | otherwise       = x
 
-stdout = map rot13 stdin
+stdout = rot13 stdin
