@@ -1,22 +1,53 @@
-# variant
+# alias
 
+Vector a = a, a, a # equivalent to (a, a, a)
 Vegetable = String
 Fruit = String
+Cry = String
+
+
+# variant
+
 Edible = Vegetable | Fruit
-Num = Int | Real
-Vector a = Vector a a a
-None = () # None and () is same completely.
-None = () : () # None and () is different.
-Maybe a = None | a
+Num = Int | Fractional | Real
+Maybe a = None | a # None is the `()` (unit) in Jack.
 
 
 # record
+
+# This `Pet` is just a record type of:
+# {
+#   name : Pet -> String,
+#   ... ,
+#   run : Pet -> Pet,
+#   stroked : Pet -> Cry
+#   toString : Pet -> String
+# }
 
 Pet = name : String, height : Real, favoriteToy : String
   run : Pet -> Pet
   self.run = Pet self.name self.height "boots"
 
-Show Pet
+  stroked : Pet -> Cry
+  self.stroked = if self.height < 200
+                 then "Don't do that!"
+                 else "You can't do that..."
+
+  # implement the Show interface
+  toString : Pet -> String
   self.toString = self.name ++ "likes" ++ self.favoriteToy
 
+## constructing pet
+
 myPet = Pet "John" 60 "ball"
+
+
+# interface
+
+# An "interface" is an abstract base class in OOP.
+# It consists of prototypes of its methods.
+
+interface Show
+  toString : a -> String
+  # for example
+  # _.toString = "THE CLASS NAME"

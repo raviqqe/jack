@@ -1,12 +1,2 @@
-# candidate 1
-
 data = inputFile "input.txt"
-outputFile "output.txt" data
-
-
-# candidate 2
-
-outputFile : File "output.txt"
-inputFile : File "input.txt"
-
-outputFile = inputFile
+outputFile "output.txt" data # its type is `Output`
