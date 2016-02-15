@@ -1,5 +1,6 @@
 module Parser (
-  parseToplevels
+  parseToplevels,
+  parseStmts
 ) where
 
 import Text.Parsec
@@ -10,6 +11,12 @@ import Lexer
 import Syntax
 
 
+-- types
+
+type Toplevel = Either Expr Stmt
+
+
+-- functions
 
 opTable = [[binary "*" Times  Ex.AssocLeft,
             binary "/" Divide Ex.AssocLeft],
@@ -34,7 +41,7 @@ variable = do
   var <- identifier
   return $ Var var
 
-function :: Parser Expr
+function :: Parser Stmt
 function = do
   reserved "def"
   name <- identifier
@@ -42,7 +49,7 @@ function = do
   body <- expr
   return $ Function name args body
 
-extern :: Parser Expr
+extern :: Parser Stmt
 extern = do
   reserved "extern"
   name <- identifier
@@ -58,8 +65,6 @@ call = do
 factor :: Parser Expr
 factor = try floating
      <|> try int
-     <|> try extern
-     <|> try function
      <|> try call
      <|> variable
      <|> parens expr
@@ -71,18 +76,29 @@ contents parser = do
   eof
   return c
 
-statement :: Parser Expr
-statement = try extern <|> function
-
-toplevel :: Parser Expr
-toplevel = do
-  t <- try statement <|> expr
+statement :: Parser Stmt
+statement = do
+  s <- try extern <|> function
   reservedOp ";"
-  return t
+  return s
+
+toplevelExpr :: Parser Expr
+toplevelExpr = do
+  e <- expr
+  reservedOp ";"
+  return e
+
+toplevel :: Parser Toplevel
+toplevel = try (toplevelExpr >>= (return . Left))
+           <|> (statement    >>= (return . Right))
 
 parseExpr :: String -> String -> Either ParseError Expr
 parseExpr sourceName sourceCode = parse (contents expr) sourceName sourceCode
 
-parseToplevels :: String -> String -> Either ParseError [Expr]
+parseToplevels :: String -> String -> Either ParseError [Toplevel]
 parseToplevels sourceName sourceCode
   = parse (contents $ many toplevel) sourceName sourceCode
+
+parseStmts :: String -> String -> Either ParseError [Stmt]
+parseStmts sourceName sourceCode
+  = parse (contents $ many statement) sourceName sourceCode
