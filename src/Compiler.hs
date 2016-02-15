@@ -5,12 +5,9 @@ module Compiler (
 import System.IO
 
 
-
+-- DEBUG
 compile :: Maybe FilePath -> IO ()
-compile maybeFilename = do
-  sourceCode <- case maybeFilename of
-    Nothing -> getContents
-    Just filename -> readFile filename
-  putStr sourceCode -- DEBUG
+compile (Just filename) = putStr =<< readFile filename
+compile Nothing = putStr =<< getContents
   --let theModule = compile sourceCode
-  --outputModuleToFile theModule filename
+  --outputModuleToFile theModule outputFilename
