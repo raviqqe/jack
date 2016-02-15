@@ -37,3 +37,6 @@ reserved = Tok.reserved lexer
 
 reservedOp :: String -> Parser ()
 reservedOp = Tok.reservedOp lexer
+
+spaces :: Parser ()
+spaces = Tok.whiteSpace lexer

@@ -4,7 +4,6 @@ module Parser where
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import qualified Text.Parsec.Expr as Ex
-import qualified Text.Parsec.Token as Token
 
 import Lexer
 import Syntax
@@ -71,11 +70,11 @@ defn = try extern
    <|> expr
 
 contents :: Parser a -> Parser a
-contents p = do
-  Token.whiteSpace lexer
-  r <- p
+contents parser = do
+  spaces
+  theContents <- parser
   eof
-  return r
+  return theContents
 
 toplevel :: Parser [Expr]
 toplevel = many $ do
