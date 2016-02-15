@@ -33,11 +33,11 @@ Pet = name : String, height : Real, favoriteToy : String
                  then "Don't do that!"
                  else "You can't do that..."
 
-  # implement the Show interface
+  # implement the Show interface implicitly
   toString : Pet -> String
   self.toString = self.name ++ "likes" ++ self.favoriteToy
 
-## constructing pet
+## constructing a pet
 
 myPet = Pet "John" 60 "ball"
 
@@ -47,7 +47,22 @@ myPet = Pet "John" 60 "ball"
 # An "interface" is an abstract base class in OOP.
 # It consists of prototypes of its methods.
 
-interface Show
-  toString : a -> String
+interface Show # NOT `Show a`!
+  toString : Show -> String
   # for example
   # _.toString = "THE CLASS NAME"
+
+interface Monad a
+  return : a -> Monad a
+  bind : Monad b -> (a -> Monad b) -> Monad b
+
+#```
+#Identity a = a # where Identity == Monad (<=> Identity a == Monad a)
+#  return a = a
+#  bind x f = f x
+#```
+# OMG! Everything can be `Identity a`!
+
+Identity a = runIdentity : a
+  return a = Identity a
+  bind x f = (f . runIdentity) x
