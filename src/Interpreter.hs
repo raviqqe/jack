@@ -7,20 +7,22 @@ import System.Console.Haskeline
 import System.IO
 
 import Parser
-import Lexer
 
 
 
 interpret :: IO ()
 interpret = runInputT defaultSettings interpretInputLines
   where
+    interpretInputLines :: InputT IO ()
     interpretInputLines = do
-      maybeInput <- getInputLine "ready> "
-      case maybeInput of
-        Nothing -> outputStrLn "Goodbye."
-        Just input -> do
-          liftIO $ interpretOneLine input
-          interpretInputLines
+      maybeInputLine <- getInputLine "ready> "
+      processInputLine maybeInputLine
+
+    processInputLine :: Maybe String -> InputT IO ()
+    processInputLine (Just line) = do
+      liftIO $ interpretOneLine line
+      interpretInputLines
+    processInputLine Nothing = outputStrLn "Goodbye."
 
 
 interpretOneLine :: String -> IO ()
