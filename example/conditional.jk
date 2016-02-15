@@ -1,0 +1,19 @@
+# if expression
+
+x = if 123 mod 2 == 0 then "OK" else "GOOD"
+
+## alternative way
+
+isEven x
+  | x mod 2 == 0  = "OK"
+  | otherwise     = "GOOD"
+x = isEven 123
+
+# case expression
+
+Car = name : String, power : Real
+
+y = case Car "mustang" 300
+    | Car "mustang" _ => "Good!"
+    | Car "roadster" _ => "Super Good!"
+    | _ => "Garbage!"
