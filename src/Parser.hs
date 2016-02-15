@@ -1,5 +1,6 @@
-module Parser where
-
+module Parser (
+  parseToplevels
+) where
 
 import Text.Parsec
 import Text.Parsec.String (Parser)
@@ -9,12 +10,13 @@ import Lexer
 import Syntax
 
 
-binary s f assoc = Ex.Infix (reservedOp s >> return (BinOp f)) assoc
 
 opTable = [[binary "*" Times  Ex.AssocLeft,
             binary "/" Divide Ex.AssocLeft],
            [binary "+" Plus   Ex.AssocLeft,
             binary "-" Minus  Ex.AssocLeft]]
+  where
+    binary s f assoc = Ex.Infix (reservedOp s >> return (BinOp f)) assoc
 
 int :: Parser Expr
 int = do
@@ -22,9 +24,7 @@ int = do
   return $ Float (fromInteger n)
 
 floating :: Parser Expr
-floating = do
-  n <- float
-  return $ Float n
+floating = (return . Float) =<< float
 
 expr :: Parser Expr
 expr = Ex.buildExpressionParser opTable factor
@@ -64,26 +64,25 @@ factor = try floating
      <|> variable
      <|> parens expr
 
-defn :: Parser Expr
-defn = try extern
-   <|> try function
-   <|> expr
-
 contents :: Parser a -> Parser a
 contents parser = do
   spaces
-  theContents <- parser
+  c <- parser
   eof
-  return theContents
+  return c
 
-toplevel :: Parser [Expr]
-toplevel = many $ do
-  def <- defn
+statement :: Parser Expr
+statement = try extern <|> function
+
+toplevel :: Parser Expr
+toplevel = do
+  t <- try statement <|> expr
   reservedOp ";"
-  return def
+  return t
 
-parseExpr :: String -> Either ParseError Expr
-parseExpr s = parse (contents expr) "<stdin>" s
+parseExpr :: String -> String -> Either ParseError Expr
+parseExpr sourceName sourceCode = parse (contents expr) sourceName sourceCode
 
-parseToplevel :: String -> Either ParseError [Expr]
-parseToplevel s = parse (contents toplevel) "<stdin>" s
+parseToplevels :: String -> String -> Either ParseError [Expr]
+parseToplevels sourceName sourceCode
+  = parse (contents $ many toplevel) sourceName sourceCode

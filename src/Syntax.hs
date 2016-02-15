@@ -11,6 +11,10 @@ data Expr = Float Double
           | Extern Name [Expr]
           deriving (Eq, Ord, Show)
 
+--data Stmt = Function Name [Expr] Expr
+--          | Extern Name [Expr]
+--          deriving (Eq, Ord, Show)
+
 data Op = Plus
         | Minus
         | Times

@@ -27,6 +27,6 @@ interpret = runInputT defaultSettings interpretInputLines
 
 interpretOneLine :: String -> IO ()
 interpretOneLine line = do
-  case parseToplevel line of
+  case parseToplevels "<stdin>" line of
     Left err -> print err
     Right expr -> mapM_ print expr
