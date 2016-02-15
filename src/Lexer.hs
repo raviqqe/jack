@@ -2,39 +2,39 @@ module Lexer where
 
 import Text.Parsec.String (Parser)
 import Text.Parsec.Language (emptyDef)
-import qualified Text.Parsec.Token as Token
+import qualified Text.Parsec.Token as Tok
 
 
-lexer :: Token.TokenParser ()
-lexer = Token.makeTokenParser style
+lexer :: Tok.TokenParser ()
+lexer = Tok.makeTokenParser style
   where
     style = emptyDef {
-              Token.commentLine = "#",
-              Token.reservedOpNames = ["+", "*", "-", ";"],
-              Token.reservedNames = ["def", "extern"]
+              Tok.commentLine = "#",
+              Tok.reservedOpNames = ["+", "*", "-", ";"],
+              Tok.reservedNames = ["def", "extern"]
             }
 
 
 integer :: Parser Integer
-integer = Token.integer lexer
+integer = Tok.integer lexer
 
 float :: Parser Double
-float = Token.float lexer
+float = Tok.float lexer
 
 parens :: Parser a -> Parser a
-parens = Token.parens lexer
+parens = Tok.parens lexer
 
 commaSep :: Parser a -> Parser [a]
-commaSep = Token.commaSep lexer
+commaSep = Tok.commaSep lexer
 
 semiSep :: Parser a -> Parser [a]
-semiSep = Token.semiSep lexer
+semiSep = Tok.semiSep lexer
 
 identifier :: Parser String
-identifier = Token.identifier lexer
+identifier = Tok.identifier lexer
 
 reserved :: String -> Parser ()
-reserved = Token.reserved lexer
+reserved = Tok.reserved lexer
 
 reservedOp :: String -> Parser ()
-reservedOp = Token.reservedOp lexer
+reservedOp = Tok.reservedOp lexer
