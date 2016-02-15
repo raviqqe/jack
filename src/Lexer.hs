@@ -14,7 +14,6 @@ lexer = Tok.makeTokenParser style
               Tok.reservedNames = ["def", "extern"]
             }
 
-
 integer :: Parser Integer
 integer = Tok.integer lexer
 
