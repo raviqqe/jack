@@ -22,3 +22,32 @@ h x = f x + 123
 # invalid
 #h x = f x + 123
 #     f x = 123
+
+# testing the idea...
+
+function = expression
+function
+  = expression
+function arg1 = expression
+function arg1
+  = expression
+function arg1
+ = expression
+ foo = 123
+ bar = 456
+## To begin where or guard blocks, = or | must emerge as the first token
+## at its lines.
+function pattern1 pattern2 looooooooooooooooooongpattern3
+    pattern4
+  = expression
+  foo = 123
+  bar = 456
+function pattern1 pattern2 looooooooooooooooooongpattern3
+    pattern4
+  | expression1 = expression2
+  | expression3 = expression4
+  foo = 123
+  bar = 456
+function patter1 patter2 = expression
+                         highBlockFunction1 = 123
+                         highBlockFunction2 x = x + 456
