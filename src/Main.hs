@@ -11,7 +11,11 @@ import Interpreter
 main :: IO ()
 main = do
   args <- parseArgs
-  interactiveMode <- hIsTerminalDevice stdin
-  if sourceCodeFilename args == Nothing && interactiveMode
+  replMode <- isREPLMode args
+  if replMode
     then interpret
     else compile (sourceCodeFilename args)
+  where
+    isREPLMode args = do
+      stdinIsTerminal <- hIsTerminalDevice stdin
+      return $ sourceCodeFilename args == Nothing && stdinIsTerminal
