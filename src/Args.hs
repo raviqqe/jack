@@ -9,7 +9,9 @@ import Control.Monad
 
 -- types
 
-data Args = Args { sourceCodeFilename :: Maybe FilePath, debug :: Bool }
+data Args = Args { sourceCodeFilename :: Maybe FilePath,
+                   objectFilename :: Maybe FilePath,
+                   debug :: Bool }
             deriving Show
 
 
@@ -19,6 +21,10 @@ args :: Parser Args
 args = Args <$> argument (optional str)
                          ( metavar "FILE"
                         <> value Nothing)
+            <*> optional (strOption ( short 'o'
+                                   <> long "object-file"
+                                   <> metavar "OBJECT_FILE"
+                                   <> help "object file of output" ))
             <*> switch ( short 'd'
                       <> long "debug"
                       <> help "switch debug mode" )

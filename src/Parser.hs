@@ -18,12 +18,12 @@ type Toplevel = Either Expr Stmt
 
 -- functions
 
-opTable = [[binary "*" Times  Ex.AssocLeft,
-            binary "/" Divide Ex.AssocLeft],
-           [binary "+" Plus   Ex.AssocLeft,
-            binary "-" Minus  Ex.AssocLeft]]
+binOps = [[binary "*" Ex.AssocLeft,
+            binary "/" Ex.AssocLeft],
+           [binary "+" Ex.AssocLeft,
+            binary "-" Ex.AssocLeft]]
   where
-    binary s f assoc = Ex.Infix (reservedOp s >> return (BinOp f)) assoc
+    binary s assoc = Ex.Infix (reservedOp s >> return (BinaryOp s)) assoc
 
 int :: Parser Expr
 int = do
@@ -34,18 +34,16 @@ floating :: Parser Expr
 floating = (return . Float) =<< float
 
 expr :: Parser Expr
-expr = Ex.buildExpressionParser opTable factor
+expr = Ex.buildExpressionParser binOps factor
 
 variable :: Parser Expr
-variable = do
-  var <- identifier
-  return $ Var var
+variable = Var <$> identifier
 
 function :: Parser Stmt
 function = do
   reserved "def"
   name <- identifier
-  args <- parens $ many variable
+  args <- parens $ many identifier
   body <- expr
   return $ Function name args body
 
@@ -53,7 +51,7 @@ extern :: Parser Stmt
 extern = do
   reserved "extern"
   name <- identifier
-  args <- parens $ many variable
+  args <- parens $ many identifier
   return $ Extern name args
 
 call :: Parser Expr

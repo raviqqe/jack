@@ -1,8 +1,16 @@
 rm = rm -rf
+#llvm_dir = /home/raviqqe/.local
+llvm_dir = /usr/local/llvm35
+llvm_bin_dir = $llvm_dir/bin
+llvm_lib_dir = $llvm_dir/lib
+ghc_flags = $$($llvm_bin_dir/llvm-config --libs --ldflags --system-libs $
+                                         --cppflags) $
+            -L/usr/lib -L/usr/local/lib -lc++
+#ghc_flags = -Wall -L/usr/lib -L/usr/local/lib -lc++
 
 
 rule build_haskell
-  command = ghc --make $in
+  command = ghc $ghc_flags --make -Wall $in
 
 rule clean
   command = $rm *.hi *.o a.out Main

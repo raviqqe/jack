@@ -14,7 +14,7 @@ main = do
   replMode <- isREPLMode args
   if replMode
     then interpret
-    else compile (sourceCodeFilename args)
+    else compile (sourceCodeFilename args) (objectFilename args)
   where
     isREPLMode args = do
       stdinIsTerminal <- hIsTerminalDevice stdin
