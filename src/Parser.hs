@@ -3,6 +3,7 @@ module Parser (
   parseStmts
 ) where
 
+import Control.Applicative ((<$>))
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import qualified Text.Parsec.Expr as Ex
