@@ -14,9 +14,10 @@ import Emit
 
 
 
--- Constatns
+-- Constants
 
 sourceName = "<stdin>"
+
 
 -- REPL
 
@@ -28,28 +29,26 @@ runREPL = runInputT defaultSettings
 
 -- functions
 
-interpret :: IO ()
-interpret = runREPL interpretInputLines
-
-interpretInputLines :: REPL ()
-interpretInputLines = do
-  inputLine <- getInputLine "ready> "
-  case inputLine of
-    Nothing   -> outputStrLn "Goodbye."
-    Just line -> interpretOneLine line >> interpretInputLines
-
-interpretOneLine :: String -> REPL ()
-interpretOneLine line = liftIO $ do
-  case parseToplevels sourceName line of
-    Left err -> print err
-    Right expr -> mapM_ print expr
-
-
 initModule :: AST.Module
 initModule = emptyModule "Jack JIT REPL"
 
-process :: AST.Module -> String -> IO (Maybe AST.Module)
-process astMod sourceCode
+interpret :: IO ()
+interpret = runREPL (makeModuleFromInputLines initModule)
+  where
+  makeModuleFromInputLines :: AST.Module -> REPL ()
+  makeModuleFromInputLines mod = do
+    inputLine <- getInputLine "ready> "
+    case inputLine of
+      Nothing   -> outputStrLn "Goodbye."
+      Just line -> do
+        --interpretOneLine line >> interpretInputLines
+        maybeMod <- liftIO $ incorporateToplevels mod line
+        makeModuleFromInputLines (case maybeMod of
+          Just newMod -> newMod
+          Nothing -> mod)
+
+incorporateToplevels :: AST.Module -> String -> IO (Maybe AST.Module)
+incorporateToplevels astMod sourceCode
   = case parseToplevels sourceName sourceCode of
     Left err -> print err >> return Nothing
     Right toplevels -> return . Just =<< codegen astMod toplevels
