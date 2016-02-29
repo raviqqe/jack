@@ -19,22 +19,22 @@ data Args = Args { sourceCodeFilename :: Maybe FilePath,
 
 args :: Parser Args
 args = Args <$> argument (optional str)
-                         ( metavar "FILE"
-                        <> value Nothing)
-            <*> optional (strOption ( short 'o'
-                                   <> long "object-file"
-                                   <> metavar "OBJECT_FILE"
-                                   <> help "object file of output" ))
-            <*> switch ( short 'd'
-                      <> long "debug"
-                      <> help "toggle debug mode" )
+                         (metavar "FILE"
+                       <> value Nothing)
+            <*> optional (strOption (short 'o'
+                                  <> long "object-file"
+                                  <> metavar "OBJECT_FILE"
+                                  <> help "object file of output" ))
+            <*> switch (short 'd'
+                     <> long "debug"
+                     <> help "toggle debug mode" )
 
 
 parseArgs :: IO Args
 parseArgs = execParser argsWithHelp
   where
     argsWithHelp = info (helper <*> args)
-                        ( fullDesc
-                       <> progDesc "Compile source code \
-                                   \of Jack programming language"
-                       <> header "Jack Programming Language Compiler" )
+                        (fullDesc
+                      <> progDesc "Compile source code \
+                                  \of Jack programming language"
+                      <> header "Jack Programming Language Compiler" )
