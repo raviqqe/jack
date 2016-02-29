@@ -27,7 +27,7 @@ args = Args <$> argument (optional str)
                                    <> help "object file of output" ))
             <*> switch ( short 'd'
                       <> long "debug"
-                      <> help "switch debug mode" )
+                      <> help "toggle debug mode" )
 
 
 parseArgs :: IO Args
