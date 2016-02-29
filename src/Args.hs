@@ -31,10 +31,10 @@ args = Args <$> argument (optional str)
 
 
 parseArgs :: IO Args
-parseArgs = do
-  let argsWithHelp = info (helper <*> args)
-                          ( fullDesc
-                         <> progDesc "Compile source code \
-                                     \of Jack programming language"
-                         <> header "Jack Programming Language Compiler" )
-  execParser argsWithHelp
+parseArgs = execParser argsWithHelp
+  where
+    argsWithHelp = info (helper <*> args)
+                        ( fullDesc
+                       <> progDesc "Compile source code \
+                                   \of Jack programming language"
+                       <> header "Jack Programming Language Compiler" )
