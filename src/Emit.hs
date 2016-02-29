@@ -89,10 +89,10 @@ liftError :: ExceptT String IO a -> IO a
 liftError = runExceptT >=> either fail return
 
 codegen :: AST.Module -> [Either S.Expr S.Stmt] -> IO AST.Module
-codegen astMod functions = withContext $ \context ->
+codegen astMod toplevels = withContext $ \context ->
   liftError $ withModuleFromAST context astMod' $ \mod -> do
     assembly <- moduleLLVMAssembly mod
     putStrLn assembly
     return astMod'
   where
-    astMod' = runModuleMaker astMod $ mapM codegenTop functions
+    astMod' = runModuleMaker astMod $ mapM codegenTop toplevels
