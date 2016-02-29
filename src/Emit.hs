@@ -22,7 +22,7 @@ import qualified Syntax as S
 toSignatures :: [String] -> [(AST.Type, AST.Name)]
 toSignatures = map (\name -> (double, AST.Name name))
 
-codegenTop :: Either S.Expr S.Stmt -> LLVM ()
+codegenTop :: Either S.Expr S.Stmt -> ModuleMaker ()
 codegenTop (Right (S.Function name args body)) = do
   define double name args' blocks
   where
@@ -95,4 +95,4 @@ codegen astMod functions = withContext $ \context ->
     putStrLn assembly
     return astMod'
   where
-    astMod' = runLLVM astMod $ mapM codegenTop functions
+    astMod' = runModuleMaker astMod $ mapM codegenTop functions

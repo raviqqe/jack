@@ -23,21 +23,21 @@ import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
 -- Module level
 
-newtype LLVM a = LLVM { unLLVM :: State AST.Module a }
+newtype ModuleMaker a = ModuleMaker { unModuleMaker :: State AST.Module a }
   deriving (Functor, Applicative, Monad, MonadState AST.Module)
 
-runLLVM :: AST.Module -> LLVM a -> AST.Module
-runLLVM = flip (execState . unLLVM)
+runModuleMaker :: AST.Module -> ModuleMaker a -> AST.Module
+runModuleMaker = flip (execState . unModuleMaker)
 
 emptyModule :: String -> AST.Module
 emptyModule name = defaultModule { moduleName = name }
 
-addDefinition :: Definition -> LLVM ()
+addDefinition :: Definition -> ModuleMaker ()
 addDefinition definition = do
   definitions <- gets moduleDefinitions
   modify $ \s -> s { moduleDefinitions = definitions ++ [definition] }
 
-define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> LLVM ()
+define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> ModuleMaker ()
 define retType functionName args body = addDefinition $
   GlobalDefinition $ functionDefaults {
     name = Name functionName,
@@ -47,7 +47,7 @@ define retType functionName args body = addDefinition $
     basicBlocks = body
   }
 
-external :: Type -> String -> [(Type, Name)] -> LLVM ()
+external :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
 external retType label args = addDefinition $
   GlobalDefinition $ functionDefaults {
     name = Name label,
