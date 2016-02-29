@@ -4,12 +4,26 @@ module Compiler (
 
 import System.IO
 
+import Parser
+import Codegen
+import Emit
+
+
+-- Constants
+
+stdinName = "<stdin>"
+
+
+-- Functions
 
 compile :: Maybe FilePath -> Maybe FilePath -> IO ()
-compile (Just filename) _ = putStr =<< readFile filename
-compile Nothing _ = putStr =<< getContents
---let theModule = compile sourceCode
---outputModuleToFile theModule outputFilename
+compile (Just filename) _ = codegenSourceCode filename =<< readFile filename
+compile Nothing _ = codegenSourceCode stdinName =<< getContents
 
-
---sourceToModule
+codegenSourceCode :: FilePath -> String -> IO ()
+codegenSourceCode sourceName sourceCode = do
+  case parseToplevels sourceName sourceCode of
+    Left err -> print err
+    Right toplevels -> do
+      codegen (emptyModule sourceName) toplevels
+      return ()
