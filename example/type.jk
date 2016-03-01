@@ -1,19 +1,29 @@
+# The main concept of the type system of Jack is that
+# a type is a set of values.
+
 # alias
 
-Vector a = a, a, a # equivalent to (a, a, a)
-Vegetable = String
-Fruit = String
+Vector a = (a, a, a) # This (,,) is a type constructor
 Cry = String
 
-
-# variant
-
+# these are not variants!
 Edible = Vegetable | Fruit
-Num = Int | Fractional | Real
-Maybe a = None | a # None is the `()` (unit) in Jack.
+Maybe a = None | a # none : None (in Jack) ~ () : () (in Haskell)
+
+
+# enum
+
+# enum is the only way to define a new type
+Season = { Spring, Summer, Fall, Winter }
+None = { None }
+Bool = { False, True }
+# Number = { ..., -1.2, .., 0, ..., 0.000001, ..., 12934710, ... }
 
 
 # record
+
+Vegetable = name : String
+Fruit = name : String # override a record name
 
 # This `Pet` is just a record type of:
 # {
@@ -21,48 +31,43 @@ Maybe a = None | a # None is the `()` (unit) in Jack.
 #   ... ,
 #   run : Pet -> Pet,
 #   stroked : Pet -> Cry
-#   toString : Pet -> String
+#   show : Pet -> String
 # }
-
-Pet = name : String, height : Real, favoriteToy : String
+Pet = name : String,
+      height : Real,
+      favoriteToy : String
+  # methods
   run : Pet -> Pet
-  self.run = Pet self.name self.height "boots"
+  run self = self ( favoriteToy = "boots" )
 
   stroked : Pet -> Cry
-  self.stroked = if self.height < 200
+  stroked self = if height self < 200
                  then "Don't do that!"
                  else "You can't do that..."
 
-  # implement the Show interface implicitly
-  toString : Pet -> String
-  self.toString = self.name ++ "likes" ++ self.favoriteToy
+  # implement Show interface
+  show : Pet -> String
+  show self = name self ++ " likes " ++ favoriteToy self
 
-## constructing a pet
-
+# constructing pets
 myPet = Pet "John" 60 "ball"
+yourPet = Pet ( name = "Bob", height = 30, favoriteToy = "you" )
 
 
 # interface
 
 # An "interface" is an abstract base class in OOP.
 # It consists of prototypes of its methods.
-
 interface Show # NOT `Show a`!
-  toString : Show -> String
+  show : Show -> String
   # for example
-  # _.toString = "THE CLASS NAME"
+  # show _ = "THE CLASS NAME"
 
 interface Monad a
   return : a -> Monad a
-  bind : Monad b -> (a -> Monad b) -> Monad b
-
-#```
-#Identity a = a # where Identity == Monad (<=> Identity a == Monad a)
-#  return a = a
-#  bind x f = f x
-#```
-# OMG! Everything can be `Identity a`!
+  bind : Monad a -> (a -> Monad b) -> Monad b
 
 Identity a = runIdentity : a
+  # just override methods to implement an interface
   return a = Identity a
   bind x f = (f . runIdentity) x
