@@ -2,6 +2,5 @@
 *.hi
 *.o
 Main
-dist
 cabal.sandbox.config
 !.gitignore
