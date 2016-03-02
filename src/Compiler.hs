@@ -17,11 +17,11 @@ stdinName = "<stdin>"
 -- Functions
 
 compile :: Maybe FilePath -> Maybe FilePath -> IO ()
-compile (Just filename) _ = codegenSourceCode filename =<< readFile filename
-compile Nothing _ = codegenSourceCode stdinName =<< getContents
+compile (Just filename) _ = compileSourceCode filename =<< readFile filename
+compile Nothing _ = compileSourceCode stdinName =<< getContents
 
-codegenSourceCode :: FilePath -> String -> IO ()
-codegenSourceCode sourceName sourceCode = do
+compileSourceCode :: FilePath -> String -> IO ()
+compileSourceCode sourceName sourceCode = do
   case parseToplevels sourceName sourceCode of
     Left err -> print err
     Right toplevels -> do
