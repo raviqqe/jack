@@ -25,5 +25,5 @@ compileSourceCode sourceName sourceCode = do
   case parseToplevels sourceName sourceCode of
     Left err -> print err
     Right toplevels -> do
-      codegen (emptyModule sourceName) toplevels
+      _ <- codegen (emptyModule sourceName) toplevels
       return ()
