@@ -1,5 +1,0 @@
-package compile
-
-
-func Compile() {
-}
