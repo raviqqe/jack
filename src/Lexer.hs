@@ -1,4 +1,13 @@
-module Lexer where
+module Lexer (
+  integer,
+  float,
+  parens,
+  commaSep,
+  semiSep,
+  identifier,
+  reserved,
+  reservedOp
+)where
 
 import Text.Parsec.String (Parser)
 import Text.Parsec.Language (emptyDef)
