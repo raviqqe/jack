@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Emit where
+module Emit (
+  codegen
+) where
 
 import Control.Applicative
 import Control.Monad.Except
