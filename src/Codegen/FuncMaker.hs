@@ -110,17 +110,17 @@ modifyBlock newBlock = do
 
 -- Symbol Table
 
-assign :: String -> Operand -> FuncMaker ()
-assign varName value = do
+setSymbol :: String -> Operand -> FuncMaker ()
+setSymbol symbol value = do
   symbols <- gets symbolTable
-  modify $ \s -> s { symbolTable = Map.insert varName value symbols }
+  modify $ \s -> s { symbolTable = Map.insert symbol value symbols }
 
-getVar :: String -> FuncMaker Operand
-getVar varName = do
+referToSymbol :: String -> FuncMaker Operand
+referToSymbol symbol = do
   symbols <- gets symbolTable
-  case Map.lookup varName symbols of
+  case Map.lookup symbol symbols of
     Just x -> return x
-    Nothing -> error $ "Local variable not in scope: " ++ varName
+    Nothing -> error $ "Local symbol not in scope: " ++ symbol
 
 
 -- References

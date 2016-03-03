@@ -36,7 +36,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
       forM_ argNames $ \argName -> do
         var <- alloca double
         store var (local (AST.Name argName))
-        assign argName var
+        setSymbol argName var
       ret =<< codegenExpr body
 
 codegenToplevel (Right (S.Extern name argNames)) = declare double name args
@@ -68,7 +68,7 @@ codegenExpr :: S.Expr -> FuncMaker AST.Operand
 codegenExpr (S.UnaryOp operatorName arg) = do
   codegenExpr $ S.Call ("unary" ++ operatorName) [arg]
 codegenExpr (S.BinaryOp "=" (S.Var varName) expression) = do
-  var <- getVar varName
+  var <- referToSymbol varName
   value <- codegenExpr expression
   store var value
   return value
@@ -79,7 +79,7 @@ codegenExpr (S.BinaryOp operator a b) = do
       cb <- codegenExpr b
       instruction ca cb
     Nothing -> error "No such operator"
-codegenExpr (S.Var varName) = load =<< getVar varName
+codegenExpr (S.Var varName) = load =<< referToSymbol varName
 codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.Call functionName args) = do
   call (global (AST.Name functionName)) =<< mapM codegenExpr args
