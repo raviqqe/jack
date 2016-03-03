@@ -30,21 +30,18 @@ codegenToplevel (Right (S.Function name argNames body)) = do
   where
     args = toSignatures argNames
     blocks = createBlocks $ execCodegen $ do
-      entry <- addBlock entryBlockName
-      setBlock entry
+      setBlock =<< addBlock entryBlockName
       forM argNames $ \argName -> do
         var <- alloca double
         store var (local (AST.Name argName))
         assign argName var
       ret =<< cgen body
 
-codegenToplevel (Right (S.Extern name argNames)) = do
-  external double name args
+codegenToplevel (Right (S.Extern name argNames)) = external double name args
   where
     args = toSignatures argNames
 
-codegenToplevel (Left expression) = do
-  define double "main" [] blocks
+codegenToplevel (Left expression) = define double "main" [] blocks
   where
     blocks = createBlocks $ execCodegen $ do
       setBlock =<< addBlock entryBlockName
