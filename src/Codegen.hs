@@ -47,8 +47,8 @@ define retType functionName args body = addDefinition $
     basicBlocks = body
   }
 
-external :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
-external retType label args = addDefinition $
+declare :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
+declare retType label args = addDefinition $
   GlobalDefinition $ functionDefaults {
     name = Name label,
     parameters = ([Parameter argType name [] | (argType, name) <- args],

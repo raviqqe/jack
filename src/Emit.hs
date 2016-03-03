@@ -37,7 +37,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
         assign argName var
       ret =<< codegenExpr body
 
-codegenToplevel (Right (S.Extern name argNames)) = external double name args
+codegenToplevel (Right (S.Extern name argNames)) = declare double name args
   where
     args = toSignatures argNames
 
