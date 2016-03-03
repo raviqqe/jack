@@ -79,7 +79,7 @@ codegenExpr (S.BinaryOp operator a b) = do
 codegenExpr (S.Var varName) = load =<< getVar varName
 codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.Call functionName args) = do
-  call (externf (AST.Name functionName)) =<< mapM codegenExpr args
+  call (global (AST.Name functionName)) =<< mapM codegenExpr args
 
 -- Compilation
 

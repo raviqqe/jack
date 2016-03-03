@@ -220,11 +220,8 @@ getVar variableName = do
 local :: Name -> Operand
 local = LocalReference double
 
-global :: Name -> C.Constant
-global = C.GlobalReference double
-
-externf :: Name -> Operand
-externf = ConstantOperand . C.GlobalReference double
+global :: Name -> Operand
+global = ConstantOperand . C.GlobalReference double
 
 -- Arithmetic and constants
 
@@ -249,14 +246,14 @@ constant = ConstantOperand
 uitofp :: Type -> Operand -> Codegen Operand
 uitofp typ a = instruction $ UIToFP a typ []
 
-toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
-toArgs = map (\x -> (x, []))
-
 -- Effects
 
 call :: Operand -> [Operand] -> Codegen Operand
-call function args = instruction $ Call Nothing CC.C []
-                                        (Right function) (toArgs args) [] []
+call function args
+  = instruction $ Call Nothing CC.C [] (Right function) (toArgs args) [] []
+  where
+    toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
+    toArgs = map (\x -> (x, []))
 
 alloca :: Type -> Codegen Operand
 alloca typ = instruction $ Alloca typ Nothing 0 []
