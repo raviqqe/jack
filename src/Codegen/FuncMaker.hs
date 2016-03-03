@@ -57,26 +57,29 @@ createBlocks s
         getTerminator Nothing = error $ "Block has no terminator: "
                                         ++ show name
 
-entryBlockName :: String
-entryBlockName = "entry"
-
 emptyFuncMaker :: FuncMakerState
 emptyFuncMaker =
   FuncMakerState {
-    currentBlockName  = Name entryBlockName,
+    currentBlockName  = Name "DEADBEEF",
     functionBlocks    = Map.empty,
     symbolTable       = Map.empty,
     anonInstrIndex    = 0,
-    blockNames        = NS.insert entryBlockName NS.empty
+    blockNames        = NS.empty
   }
 
 execFuncMaker :: FuncMaker a -> FuncMakerState
-execFuncMaker codegen = execState (runFuncMaker codegen) emptyFuncMaker
+execFuncMaker funcMaker
+  = execState (runFuncMaker funcMakerWithEntry) emptyFuncMaker
+  where
+    funcMakerWithEntry = do
+      setBlock =<< addBlock entryBlockName
+      funcMaker
+
+    entryBlockName :: String
+    entryBlockName = "entry"
+
 
 -- Block stack
-
-entry :: FuncMaker Name
-entry = gets currentBlockName
 
 addBlock :: String -> FuncMaker Name
 addBlock name = do

@@ -32,7 +32,6 @@ codegenToplevel (Right (S.Function name argNames body)) = do
   where
     args = toSignatures argNames
     blocks = createBlocks $ execFuncMaker $ do
-      setBlock =<< addBlock entryBlockName
       forM_ argNames $ \argName -> do
         var <- alloca double
         store var (local (AST.Name argName))
@@ -45,9 +44,7 @@ codegenToplevel (Right (S.Extern name argNames)) = declare double name args
 
 codegenToplevel (Left expression) = define double "main" [] blocks
   where
-    blocks = createBlocks $ execFuncMaker $ do
-      setBlock =<< addBlock entryBlockName
-      ret =<< codegenExpr expression
+    blocks = createBlocks $ execFuncMaker $ ret =<< codegenExpr expression
 
 
 -- Operations
