@@ -8,6 +8,7 @@ module Codegen (
 import Control.Applicative
 import Control.Monad.Except
 import Data.Int
+import Data.String
 import Data.Word
 import qualified Data.Map as Map
 import LLVM.General.Module
@@ -17,7 +18,10 @@ import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.Float as F
 import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
-import Codegen.Prim
+import Codegen.ModuleMaker
+import Codegen.FuncMaker
+import Codegen.Instruction
+import Codegen.Type
 import qualified Syntax as S
 
 
@@ -95,3 +99,8 @@ codegen astMod toplevels = withContext $ \context ->
     return astMod'
   where
     astMod' = runModuleMaker astMod $ mapM codegenToplevel toplevels
+
+-- Name
+
+instance IsString AST.Name where
+  fromString = AST.Name . fromString
