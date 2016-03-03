@@ -86,7 +86,6 @@ data CodegenState =
     currentBlock    :: Name, -- Name of the active block to append to
     functionBlocks  :: Map.Map Name BlockState, -- Blocks for a function
     symbolTable     :: SymbolTable, -- symbol table of function scope
-    blockCount      :: Int, -- Count of basic blocks
     anonInstrIndex  :: Word, -- Count of unnamed instructions
     names           :: Names -- Name Supply
   } deriving Show
@@ -129,7 +128,6 @@ emptyCodegen =
     currentBlock    = Name entryBlockName,
     functionBlocks  = Map.empty,
     symbolTable     = [],
-    blockCount      = 1,
     anonInstrIndex  = 0,
     names           = Map.empty
   }
@@ -167,13 +165,11 @@ entry = gets currentBlock
 addBlock :: String -> Codegen Name
 addBlock name = do
   blocks <- gets functionBlocks
-  index <- gets blockCount
   lessNames <- gets names
-  let newBlock = emptyBlock index
+  let newBlock = emptyBlock (Map.size blocks)
       (qualifiedName, supply) = uniqueName name lessNames
   modify $ \s -> s { functionBlocks = Map.insert (Name qualifiedName) newBlock
                                                  blocks,
-                     blockCount = index + 1,
                      names = supply }
   return $ Name qualifiedName
 
