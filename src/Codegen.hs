@@ -120,9 +120,6 @@ createBlocks s = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
 entryBlockName :: String
 entryBlockName = "entry"
 
-emptyBlock :: Int -> BlockState
-emptyBlock index = BlockState index [] Nothing
-
 emptyCodegen :: CodegenState
 emptyCodegen =
   CodegenState {
@@ -168,11 +165,14 @@ addBlock name = do
   blocks <- gets functionBlocks
   lessNames <- gets names
   let newBlock = emptyBlock (Map.size blocks)
-      (qualifiedName, supply) = uniqueName name lessNames
+      (qualifiedName, moreNames) = uniqueName name lessNames
   modify $ \s -> s { functionBlocks = Map.insert (Name qualifiedName) newBlock
                                                  blocks,
-                     names = supply }
+                     names = moreNames }
   return $ Name qualifiedName
+  where
+    emptyBlock index = BlockState index [] Nothing
+
 
 setBlock :: Name -> Codegen Name
 setBlock name = do
