@@ -20,18 +20,23 @@ import Codegen.Type
 
 instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
-  anonIndex <- fresh
+  anonIndex <- nextAnonInstrIndex
   block <- getBlock
   let resultName = UnName anonIndex
   modifyBlock $ block { instructions = instructions block
                                        ++ [resultName := instr] }
   return $ local resultName
   where
-    fresh :: FuncMaker Word
-    fresh = do
+    nextAnonInstrIndex :: FuncMaker Word
+    nextAnonInstrIndex = do
       index <- gets anonInstrIndex
       modify $ \s -> s { anonInstrIndex = index + 1 }
       return (index + 1)
+
+noOpInstruction :: Instruction -> FuncMaker ()
+noOpInstruction instr = do
+  block <- getBlock
+  modifyBlock $ block { instructions = instructions block ++ [Do instr] }
 
 terminator :: Named Terminator -> FuncMaker (Named Terminator)
 terminator arnold = do
@@ -75,8 +80,8 @@ call function args
 alloca :: Type -> FuncMaker Operand
 alloca typ = instruction $ Alloca typ Nothing 0 []
 
-store :: Operand -> Operand -> FuncMaker Operand
-store pointer value = instruction $ Store False pointer value Nothing 0 []
+store :: Operand -> Operand -> FuncMaker ()
+store pointer value = noOpInstruction $ Store False pointer value Nothing 0 []
 
 load :: Operand -> FuncMaker Operand
 load pointer = instruction $ Load False pointer Nothing 0 []
