@@ -8,7 +8,7 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 import qualified Text.Parsec.Expr as Ex
 
-import Lexer
+import Parser.Lexer
 import Syntax
 
 
