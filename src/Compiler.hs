@@ -5,7 +5,6 @@ module Compiler (
 import System.IO
 
 import Parser
-import Codegen
 import Emit
 
 

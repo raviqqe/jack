@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Emit (
-  codegen
+  codegen,
+  emptyModule
 ) where
 
 import Control.Applicative

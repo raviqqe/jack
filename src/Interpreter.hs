@@ -9,7 +9,6 @@ import System.IO
 import qualified LLVM.General.AST as AST
 
 import Parser
-import Codegen
 import Emit
 
 
