@@ -18,8 +18,8 @@ import qualified LLVM.General.AST.CallingConvention as CC
 import qualified LLVM.General.AST.Attribute as A
 import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
-import qualified NameSupply as NS
 import Codegen.FuncMaker
+import Codegen.Type
 
 
 
@@ -67,8 +67,8 @@ fcmp cond a b = instruction $ FCmp cond a b []
 constant :: C.Constant -> Operand
 constant = ConstantOperand
 
-uitofp :: Type -> Operand -> FuncMaker Operand
-uitofp typ a = instruction $ UIToFP a typ []
+uitofp :: Operand -> FuncMaker Operand
+uitofp a = instruction $ UIToFP a double []
 
 -- Effects
 
