@@ -173,7 +173,6 @@ addBlock name = do
   where
     emptyBlock index = BlockState index [] Nothing
 
-
 setBlock :: Name -> FuncMaker Name
 setBlock name = do
   modify $ \s -> s { currentBlockName = name }
@@ -197,16 +196,16 @@ modifyBlock newBlock = do
 -- Symbol Table
 
 assign :: String -> Operand -> FuncMaker ()
-assign variableName value = do
+assign varName value = do
   symbols <- gets symbolTable
-  modify $ \s -> s { symbolTable = [(variableName, value)] ++ symbols }
+  modify $ \s -> s { symbolTable = [(varName, value)] ++ symbols }
 
 getVar :: String -> FuncMaker Operand
-getVar variableName = do
+getVar varName = do
   symbols <- gets symbolTable
-  case lookup variableName symbols of
+  case lookup varName symbols of
     Just x -> return x
-    Nothing -> error $ "Local variable not in scope: " ++ variableName
+    Nothing -> error $ "Local variable not in scope: " ++ varName
 
 
 -- References
