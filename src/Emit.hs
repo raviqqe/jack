@@ -25,23 +25,23 @@ toSignatures :: [String] -> [(AST.Type, AST.Name)]
 toSignatures = map (\name -> (double, AST.Name name))
 
 codegenToplevel :: Either S.Expr S.Stmt -> ModuleMaker ()
-codegenToplevel (Right (S.Function name args body)) = do
-  define double name args' blocks
+codegenToplevel (Right (S.Function name argNames body)) = do
+  define double name args blocks
   where
-    args' = toSignatures args
+    args = toSignatures argNames
     blocks = createBlocks $ execCodegen $ do
       entry <- addBlock entryBlockName
       setBlock entry
-      forM args $ \arg -> do
+      forM argNames $ \argName -> do
         var <- alloca double
-        store var (local (AST.Name arg))
-        assign arg var
+        store var (local (AST.Name argName))
+        assign argName var
       ret =<< cgen body
 
-codegenToplevel (Right (S.Extern name args)) = do
-  external double name args'
+codegenToplevel (Right (S.Extern name argNames)) = do
+  external double name args
   where
-    args' = toSignatures args
+    args = toSignatures argNames
 
 codegenToplevel (Left expression) = do
   define double "main" [] blocks
