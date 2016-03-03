@@ -24,8 +24,8 @@ import qualified Syntax as S
 toSignatures :: [String] -> [(AST.Type, AST.Name)]
 toSignatures = map (\name -> (double, AST.Name name))
 
-codegenTop :: Either S.Expr S.Stmt -> ModuleMaker ()
-codegenTop (Right (S.Function name args body)) = do
+codegenToplevel :: Either S.Expr S.Stmt -> ModuleMaker ()
+codegenToplevel (Right (S.Function name args body)) = do
   define double name args' blocks
   where
     args' = toSignatures args
@@ -38,12 +38,12 @@ codegenTop (Right (S.Function name args body)) = do
         assign arg var
       ret =<< cgen body
 
-codegenTop (Right (S.Extern name args)) = do
+codegenToplevel (Right (S.Extern name args)) = do
   external double name args'
   where
     args' = toSignatures args
 
-codegenTop (Left expression) = do
+codegenToplevel (Left expression) = do
   define double "main" [] blocks
   where
     blocks = createBlocks $ execCodegen $ do
@@ -97,4 +97,4 @@ codegen astMod toplevels = withContext $ \context ->
     putStrLn assembly
     return astMod'
   where
-    astMod' = runModuleMaker astMod $ mapM codegenTop toplevels
+    astMod' = runModuleMaker astMod $ mapM codegenToplevel toplevels
