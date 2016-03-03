@@ -1,6 +1,23 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Codegen.FuncMaker where
+module Codegen.FuncMaker (
+  FuncMaker,
+  instructions,
+  anonInstrIndex,
+  blockTerminator,
+  blocksInFunc,
+
+  setBlock,
+  getBlock,
+  addBlock,
+  modifyBlock,
+
+  setSymbol,
+  referToSymbol,
+
+  local,
+  global
+) where
 
 import Control.Monad.State
 import Control.Applicative
@@ -42,8 +59,8 @@ data BlockState =
 newtype FuncMaker a = FuncMaker { runFuncMaker :: State FuncMakerState a }
   deriving (Functor, Applicative, Monad, MonadState FuncMakerState)
 
-createBlocks :: FuncMakerState -> [BasicBlock]
-createBlocks s
+createBasicBlocks :: FuncMakerState -> [BasicBlock]
+createBasicBlocks s
   = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
   where
     sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
@@ -77,6 +94,9 @@ execFuncMaker funcMaker
 
     entryBlockName :: String
     entryBlockName = "entry"
+
+blocksInFunc :: FuncMaker a -> [BasicBlock]
+blocksInFunc = createBasicBlocks . execFuncMaker
 
 
 -- Block stack
