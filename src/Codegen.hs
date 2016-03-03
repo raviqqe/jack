@@ -87,7 +87,7 @@ data FuncMakerState =
     functionBlocks    :: Map.Map Name BlockState, -- Blocks for a function
     symbolTable       :: SymbolTable, -- symbol table of function scope
     anonInstrIndex    :: Word, -- Count of unnamed instructions
-    names             :: Names -- Name Supply
+    operandNames      :: Names -- Name Supply
   } deriving Show
 
 data BlockState =
@@ -127,7 +127,7 @@ emptyFuncMaker =
     functionBlocks    = Map.empty,
     symbolTable       = Map.empty,
     anonInstrIndex    = 0,
-    names             = Map.empty
+    operandNames      = Map.empty
   }
 
 execFuncMaker :: FuncMaker a -> FuncMakerState
@@ -163,12 +163,12 @@ entry = gets currentBlockName
 addBlock :: String -> FuncMaker Name
 addBlock name = do
   blocks <- gets functionBlocks
-  lessNames <- gets names
+  lessNames <- gets operandNames
   let newBlock = emptyBlock (Map.size blocks)
       (qualifiedName, moreNames) = uniqueName name lessNames
   modify $ \s -> s { functionBlocks = Map.insert (Name qualifiedName) newBlock
                                                  blocks,
-                     names = moreNames }
+                     operandNames = moreNames }
   return $ Name qualifiedName
   where
     emptyBlock index = BlockState index [] Nothing
