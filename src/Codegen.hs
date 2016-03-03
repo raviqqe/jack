@@ -107,14 +107,15 @@ sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
 sortBlocks = sortBy (compare `on` (blockIndex . snd))
 
 createBlocks :: CodegenState -> [BasicBlock]
-createBlocks s = map makeBlock $ sortBlocks $ Map.toList (functionBlocks s)
-
-makeBlock :: (Name, BlockState) -> BasicBlock
-makeBlock (label, (BlockState _ instructions term))
-  = BasicBlock label instructions (makeTerm term)
+createBlocks s = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
   where
-    makeTerm (Just term) = term
-    makeTerm Nothing = error $ "Block has no terminator: " ++ show label
+    toBasicBlock :: (Name, BlockState) -> BasicBlock
+    toBasicBlock (name, (BlockState _ instructions t))
+      = BasicBlock name instructions (getTerminator t)
+      where
+        getTerminator (Just t) = t
+        getTerminator Nothing = error $ "Block has no terminator: "
+                                        ++ show name
 
 entryBlockName :: String
 entryBlockName = "entry"
