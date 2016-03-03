@@ -5,7 +5,7 @@ module Compiler (
 import System.IO
 
 import Parser
-import Emit
+import Codegen
 
 
 -- Constants
