@@ -35,7 +35,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
         var <- alloca double
         store var (local (AST.Name argName))
         assign argName var
-      ret =<< cgen body
+      ret =<< codegenExpr body
 
 codegenToplevel (Right (S.Extern name argNames)) = external double name args
   where
@@ -45,7 +45,7 @@ codegenToplevel (Left expression) = define double "main" [] blocks
   where
     blocks = createBlocks $ execCodegen $ do
       setBlock =<< addBlock entryBlockName
-      ret =<< cgen expression
+      ret =<< codegenExpr expression
 
 
 -- Operations
@@ -61,25 +61,25 @@ binops = Map.fromList [
     ("<", lt)
   ]
 
-cgen :: S.Expr -> Codegen AST.Operand
-cgen (S.UnaryOp operatorName arg) = do
-  cgen $ S.Call ("unary" ++ operatorName) [arg]
-cgen (S.BinaryOp "=" (S.Var varName) value) = do
+codegenExpr :: S.Expr -> Codegen AST.Operand
+codegenExpr (S.UnaryOp operatorName arg) = do
+  codegenExpr $ S.Call ("unary" ++ operatorName) [arg]
+codegenExpr (S.BinaryOp "=" (S.Var varName) value) = do
   var <- getVar varName
-  convertedValue <- cgen value
+  convertedValue <- codegenExpr value
   store var convertedValue
   return convertedValue
-cgen (S.BinaryOp operator a b) = do
+codegenExpr (S.BinaryOp operator a b) = do
   case Map.lookup operator binops of
     Just f -> do
-      ca <- cgen a
-      cb <- cgen b
+      ca <- codegenExpr a
+      cb <- codegenExpr b
       f ca cb
     Nothing -> error "No such operator"
-cgen (S.Var varName) = load =<< getVar varName
-cgen (S.Float n) = return $ constant $ C.Float (F.Double n)
-cgen (S.Call function args) = do
-  largs <- mapM cgen args
+codegenExpr (S.Var varName) = load =<< getVar varName
+codegenExpr (S.Float n) = return $ constant $ C.Float (F.Double n)
+codegenExpr (S.Call function args) = do
+  largs <- mapM codegenExpr args
   call (externf (AST.Name function)) largs
 
 -- Compilation
