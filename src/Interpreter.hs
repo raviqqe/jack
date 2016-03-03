@@ -13,6 +13,7 @@ import Codegen
 
 -- Constants
 
+sourceName :: String
 sourceName = "<stdin>"
 
 

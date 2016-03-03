@@ -33,7 +33,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
     args = toSignatures argNames
     blocks = createBlocks $ execFuncMaker $ do
       setBlock =<< addBlock entryBlockName
-      forM argNames $ \argName -> do
+      forM_ argNames $ \argName -> do
         var <- alloca double
         store var (local (AST.Name argName))
         assign argName var

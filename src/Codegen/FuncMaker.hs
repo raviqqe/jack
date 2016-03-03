@@ -91,10 +91,8 @@ addBlock name = do
   where
     emptyBlock index = BlockState index [] Nothing
 
-setBlock :: Name -> FuncMaker Name
-setBlock name = do
-  modify $ \s -> s { currentBlockName = name }
-  return name
+setBlock :: Name -> FuncMaker ()
+setBlock name = modify $ \s -> s { currentBlockName = name }
 
 getBlock :: FuncMaker BlockState
 getBlock = do

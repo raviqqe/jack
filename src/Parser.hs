@@ -4,6 +4,7 @@ module Parser (
 ) where
 
 import Control.Applicative ((<$>))
+import Data.Functor.Identity
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import qualified Text.Parsec.Expr as Ex
@@ -19,6 +20,7 @@ type Toplevel = Either Expr Stmt
 
 -- functions
 
+binOps :: [[Ex.Operator String () Data.Functor.Identity.Identity Expr]]
 binOps = [[binary "*" Ex.AssocLeft,
             binary "/" Ex.AssocLeft],
            [binary "+" Ex.AssocLeft,
@@ -90,9 +92,6 @@ toplevelExpr = do
 toplevel :: Parser Toplevel
 toplevel = try (toplevelExpr >>= (return . Left))
            <|> (statement    >>= (return . Right))
-
-parseExpr :: String -> String -> Either ParseError Expr
-parseExpr sourceName sourceCode = parse (contents expr) sourceName sourceCode
 
 parseToplevels :: String -> String -> Either ParseError [Toplevel]
 parseToplevels sourceName sourceCode

@@ -8,6 +8,7 @@ import Codegen
 
 -- Constants
 
+stdinName :: String
 stdinName = "<stdin>"
 
 
