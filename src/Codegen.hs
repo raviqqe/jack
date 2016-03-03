@@ -6,8 +6,8 @@ module Codegen where
 import Control.Monad.State
 import Control.Applicative
 import Data.Function
-import Data.String
 import Data.List
+import Data.String
 import Data.Word
 import qualified Data.Map as Map
 import LLVM.General.AST
