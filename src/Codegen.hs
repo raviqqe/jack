@@ -77,12 +77,12 @@ instance IsString Name where
   fromString = Name . fromString
 
 
--- Codegen state
+-- FuncMaker state
 
 type SymbolTable = [(String, Operand)]
 
-data CodegenState =
-  CodegenState {
+data FuncMakerState =
+  FuncMakerState {
     currentBlock    :: Name, -- Name of the active block to append to
     functionBlocks  :: Map.Map Name BlockState, -- Blocks for a function
     symbolTable     :: SymbolTable, -- symbol table of function scope
@@ -98,15 +98,15 @@ data BlockState =
   } deriving Show
 
 
--- Codegen operation
+-- FuncMaker operation
 
-newtype Codegen a = Codegen { runCodegen :: State CodegenState a }
-  deriving (Functor, Applicative, Monad, MonadState CodegenState)
+newtype FuncMaker a = FuncMaker { runFuncMaker :: State FuncMakerState a }
+  deriving (Functor, Applicative, Monad, MonadState FuncMakerState)
 
 sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
 sortBlocks = sortBy (compare `on` (blockIndex . snd))
 
-createBlocks :: CodegenState -> [BasicBlock]
+createBlocks :: FuncMakerState -> [BasicBlock]
 createBlocks s = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
   where
     toBasicBlock :: (Name, BlockState) -> BasicBlock
@@ -120,9 +120,9 @@ createBlocks s = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
 entryBlockName :: String
 entryBlockName = "entry"
 
-emptyCodegen :: CodegenState
-emptyCodegen =
-  CodegenState {
+emptyFuncMaker :: FuncMakerState
+emptyFuncMaker =
+  FuncMakerState {
     currentBlock    = Name entryBlockName,
     functionBlocks  = Map.empty,
     symbolTable     = [],
@@ -130,16 +130,16 @@ emptyCodegen =
     names           = Map.empty
   }
 
-execCodegen :: Codegen a -> CodegenState
-execCodegen codegen = execState (runCodegen codegen) emptyCodegen
+execFuncMaker :: FuncMaker a -> FuncMakerState
+execFuncMaker codegen = execState (runFuncMaker codegen) emptyFuncMaker
 
-fresh :: Codegen Word
+fresh :: FuncMaker Word
 fresh = do
   i <- gets anonInstrIndex
   modify $ \state -> state { anonInstrIndex = i + 1 }
   return (i + 1)
 
-instruction :: Instruction -> Codegen (Operand)
+instruction :: Instruction -> FuncMaker (Operand)
 instruction i = do
   name <- fresh
   block <- current
@@ -148,7 +148,7 @@ instruction i = do
   modifyBlock $ block { instructions = is ++ [reference := i] }
   return $ local reference
 
-terminator :: Named Terminator -> Codegen (Named Terminator)
+terminator :: Named Terminator -> FuncMaker (Named Terminator)
 terminator arnold = do
   block <- current
   modifyBlock $ block { blockTerminator = Just arnold }
@@ -157,10 +157,10 @@ terminator arnold = do
 
 -- Block stack
 
-entry :: Codegen Name
+entry :: FuncMaker Name
 entry = gets currentBlock
 
-addBlock :: String -> Codegen Name
+addBlock :: String -> FuncMaker Name
 addBlock name = do
   blocks <- gets functionBlocks
   lessNames <- gets names
@@ -174,21 +174,21 @@ addBlock name = do
     emptyBlock index = BlockState index [] Nothing
 
 
-setBlock :: Name -> Codegen Name
+setBlock :: Name -> FuncMaker Name
 setBlock name = do
   modify $ \s -> s { currentBlock = name }
   return name
 
-getBlock :: Codegen Name
+getBlock :: FuncMaker Name
 getBlock = gets currentBlock
 
-modifyBlock :: BlockState -> Codegen ()
+modifyBlock :: BlockState -> FuncMaker ()
 modifyBlock newBlock = do
   name <- gets currentBlock
   modify $ \s -> s { functionBlocks = Map.insert name newBlock
                                                  (functionBlocks s) }
 
-current :: Codegen BlockState
+current :: FuncMaker BlockState
 current = do
   name <- gets currentBlock
   blocks <- gets functionBlocks
@@ -199,12 +199,12 @@ current = do
 
 -- Symbol Table
 
-assign :: String -> Operand -> Codegen ()
+assign :: String -> Operand -> FuncMaker ()
 assign variableName value = do
   symbols <- gets symbolTable
   modify $ \s -> s { symbolTable = [(variableName, value)] ++ symbols }
 
-getVar :: String -> Codegen Operand
+getVar :: String -> FuncMaker Operand
 getVar variableName = do
   symbols <- gets symbolTable
   case lookup variableName symbols of
@@ -222,53 +222,53 @@ global = ConstantOperand . C.GlobalReference double
 
 -- Arithmetic and constants
 
-fadd :: Operand -> Operand -> Codegen Operand
+fadd :: Operand -> Operand -> FuncMaker Operand
 fadd a b = instruction $ FAdd NoFastMathFlags a b []
 
-fsub :: Operand -> Operand -> Codegen Operand
+fsub :: Operand -> Operand -> FuncMaker Operand
 fsub a b = instruction $ FSub NoFastMathFlags a b []
 
-fmul :: Operand -> Operand -> Codegen Operand
+fmul :: Operand -> Operand -> FuncMaker Operand
 fmul a b = instruction $ FMul NoFastMathFlags a b []
 
-fdiv :: Operand -> Operand -> Codegen Operand
+fdiv :: Operand -> Operand -> FuncMaker Operand
 fdiv a b = instruction $ FDiv NoFastMathFlags a b []
 
-fcmp :: FP.FloatingPointPredicate -> Operand -> Operand -> Codegen Operand
+fcmp :: FP.FloatingPointPredicate -> Operand -> Operand -> FuncMaker Operand
 fcmp cond a b = instruction $ FCmp cond a b []
 
 constant :: C.Constant -> Operand
 constant = ConstantOperand
 
-uitofp :: Type -> Operand -> Codegen Operand
+uitofp :: Type -> Operand -> FuncMaker Operand
 uitofp typ a = instruction $ UIToFP a typ []
 
 -- Effects
 
-call :: Operand -> [Operand] -> Codegen Operand
+call :: Operand -> [Operand] -> FuncMaker Operand
 call function args
   = instruction $ Call Nothing CC.C [] (Right function) (toArgs args) [] []
   where
     toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
     toArgs = map (\x -> (x, []))
 
-alloca :: Type -> Codegen Operand
+alloca :: Type -> FuncMaker Operand
 alloca typ = instruction $ Alloca typ Nothing 0 []
 
-store :: Operand -> Operand -> Codegen Operand
+store :: Operand -> Operand -> FuncMaker Operand
 store pointer value = instruction $ Store False pointer value Nothing 0 []
 
-load :: Operand -> Codegen Operand
+load :: Operand -> FuncMaker Operand
 load pointer = instruction $ Load False pointer Nothing 0 []
 
 ---- Control flow
 
-br :: Name -> Codegen (Named Terminator)
+br :: Name -> FuncMaker (Named Terminator)
 br value = terminator $ Do $ Br value []
 
-condbr :: Operand -> Name -> Name -> Codegen (Named Terminator)
+condbr :: Operand -> Name -> Name -> FuncMaker (Named Terminator)
 condbr cond whenTrue whenFalse
   = terminator $ Do $ CondBr cond whenTrue whenFalse []
 
-ret :: Operand -> Codegen (Named Terminator)
+ret :: Operand -> FuncMaker (Named Terminator)
 ret value = terminator $ Do $ Ret (Just value) []

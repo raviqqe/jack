@@ -29,7 +29,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
   define double name args blocks
   where
     args = toSignatures argNames
-    blocks = createBlocks $ execCodegen $ do
+    blocks = createBlocks $ execFuncMaker $ do
       setBlock =<< addBlock entryBlockName
       forM argNames $ \argName -> do
         var <- alloca double
@@ -43,14 +43,14 @@ codegenToplevel (Right (S.Extern name argNames)) = external double name args
 
 codegenToplevel (Left expression) = define double "main" [] blocks
   where
-    blocks = createBlocks $ execCodegen $ do
+    blocks = createBlocks $ execFuncMaker $ do
       setBlock =<< addBlock entryBlockName
       ret =<< codegenExpr expression
 
 
 -- Operations
 
-lt :: AST.Operand -> AST.Operand -> Codegen AST.Operand
+lt :: AST.Operand -> AST.Operand -> FuncMaker AST.Operand
 lt a b = uitofp double =<< fcmp FP.ULT a b
 
 binops = Map.fromList [
@@ -61,7 +61,7 @@ binops = Map.fromList [
     ("<", lt)
   ]
 
-codegenExpr :: S.Expr -> Codegen AST.Operand
+codegenExpr :: S.Expr -> FuncMaker AST.Operand
 codegenExpr (S.UnaryOp operatorName arg) = do
   codegenExpr $ S.Call ("unary" ++ operatorName) [arg]
 codegenExpr (S.BinaryOp "=" (S.Var varName) expression) = do
