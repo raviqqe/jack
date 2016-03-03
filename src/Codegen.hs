@@ -142,7 +142,7 @@ fresh = do
 instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
   anonIndex <- fresh
-  block <- currentBlock
+  block <- getBlock
   let resultName = UnName anonIndex
   modifyBlock $ block { instructions = instructions block
                                        ++ [resultName := instr] }
@@ -150,7 +150,7 @@ instruction instr = do
 
 terminator :: Named Terminator -> FuncMaker (Named Terminator)
 terminator arnold = do
-  block <- currentBlock
+  block <- getBlock
   modifyBlock $ block { blockTerminator = Just arnold }
   return arnold
 
@@ -179,22 +179,19 @@ setBlock name = do
   modify $ \s -> s { currentBlockName = name }
   return name
 
-getBlock :: FuncMaker Name
-getBlock = gets currentBlockName
+getBlock :: FuncMaker BlockState
+getBlock = do
+  name <- gets currentBlockName
+  blocks <- gets functionBlocks
+  case Map.lookup name blocks of
+    Just x -> return x
+    Nothing -> error $ "No such block: " ++ show name
 
 modifyBlock :: BlockState -> FuncMaker ()
 modifyBlock newBlock = do
   name <- gets currentBlockName
   modify $ \s -> s { functionBlocks = Map.insert name newBlock
                                                  (functionBlocks s) }
-
-currentBlock :: FuncMaker BlockState
-currentBlock = do
-  name <- gets currentBlockName
-  blocks <- gets functionBlocks
-  case Map.lookup name blocks of
-    Just x -> return x
-    Nothing -> error $ "No such block: " ++ show name
 
 
 -- Symbol Table
