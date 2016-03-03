@@ -54,6 +54,7 @@ codegenToplevel (Left expression) = define double "main" [] blocks
 lt :: AST.Operand -> AST.Operand -> FuncMaker AST.Operand
 lt a b = uitofp double =<< fcmp FP.ULT a b
 
+binops :: Map.Map String (AST.Operand -> AST.Operand -> FuncMaker AST.Operand)
 binops = Map.fromList [
     ("+", fadd),
     ("-", fsub),
