@@ -5,11 +5,8 @@ module Codegen (
   emptyModule
 ) where
 
-import Control.Applicative
 import Control.Monad.Except
-import Data.Int
 import Data.String
-import Data.Word
 import qualified Data.Map as Map
 import LLVM.General.Module
 import LLVM.General.Context

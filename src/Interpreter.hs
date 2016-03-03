@@ -4,8 +4,6 @@ module Interpreter (
 
 import Control.Monad.Trans
 import System.Console.Haskeline
-import System.Environment
-import System.IO
 import qualified LLVM.General.AST as AST
 
 import Parser

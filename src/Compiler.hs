@@ -2,8 +2,6 @@ module Compiler (
   compile
 ) where
 
-import System.IO
-
 import Parser
 import Codegen
 
