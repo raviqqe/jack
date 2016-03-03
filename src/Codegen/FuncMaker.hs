@@ -42,12 +42,13 @@ data BlockState =
 newtype FuncMaker a = FuncMaker { runFuncMaker :: State FuncMakerState a }
   deriving (Functor, Applicative, Monad, MonadState FuncMakerState)
 
-sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
-sortBlocks = sortBy (compare `on` (blockIndex . snd))
-
 createBlocks :: FuncMakerState -> [BasicBlock]
-createBlocks s = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
+createBlocks s
+  = map toBasicBlock $ sortBlocks $ Map.toList (functionBlocks s)
   where
+    sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
+    sortBlocks = sortBy (compare `on` (blockIndex . snd))
+
     toBasicBlock :: (Name, BlockState) -> BasicBlock
     toBasicBlock (name, (BlockState _ instructions t))
       = BasicBlock name instructions (getTerminator t)
