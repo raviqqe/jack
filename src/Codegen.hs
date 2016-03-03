@@ -83,11 +83,11 @@ type SymbolTable = [(String, Operand)]
 
 data FuncMakerState =
   FuncMakerState {
-    currentBlock    :: Name, -- Name of the active block to append to
-    functionBlocks  :: Map.Map Name BlockState, -- Blocks for a function
-    symbolTable     :: SymbolTable, -- symbol table of function scope
-    anonInstrIndex  :: Word, -- Count of unnamed instructions
-    names           :: Names -- Name Supply
+    currentBlockName  :: Name, -- Name of the active block to append to
+    functionBlocks    :: Map.Map Name BlockState, -- Blocks for a function
+    symbolTable       :: SymbolTable, -- symbol table of function scope
+    anonInstrIndex    :: Word, -- Count of unnamed instructions
+    names             :: Names -- Name Supply
   } deriving Show
 
 data BlockState =
@@ -123,11 +123,11 @@ entryBlockName = "entry"
 emptyFuncMaker :: FuncMakerState
 emptyFuncMaker =
   FuncMakerState {
-    currentBlock    = Name entryBlockName,
-    functionBlocks  = Map.empty,
-    symbolTable     = [],
-    anonInstrIndex  = 0,
-    names           = Map.empty
+    currentBlockName  = Name entryBlockName,
+    functionBlocks    = Map.empty,
+    symbolTable       = [],
+    anonInstrIndex    = 0,
+    names             = Map.empty
   }
 
 execFuncMaker :: FuncMaker a -> FuncMakerState
@@ -135,22 +135,22 @@ execFuncMaker codegen = execState (runFuncMaker codegen) emptyFuncMaker
 
 fresh :: FuncMaker Word
 fresh = do
-  i <- gets anonInstrIndex
-  modify $ \state -> state { anonInstrIndex = i + 1 }
-  return (i + 1)
+  index <- gets anonInstrIndex
+  modify $ \s -> s { anonInstrIndex = index + 1 }
+  return (index + 1)
 
-instruction :: Instruction -> FuncMaker (Operand)
-instruction i = do
-  name <- fresh
-  block <- current
-  let reference = UnName name
-      is = instructions block
-  modifyBlock $ block { instructions = is ++ [reference := i] }
-  return $ local reference
+instruction :: Instruction -> FuncMaker Operand
+instruction instr = do
+  anonIndex <- fresh
+  block <- currentBlock
+  let resultName = UnName anonIndex
+  modifyBlock $ block { instructions = instructions block
+                                       ++ [resultName := instr] }
+  return $ local resultName
 
 terminator :: Named Terminator -> FuncMaker (Named Terminator)
 terminator arnold = do
-  block <- current
+  block <- currentBlock
   modifyBlock $ block { blockTerminator = Just arnold }
   return arnold
 
@@ -158,7 +158,7 @@ terminator arnold = do
 -- Block stack
 
 entry :: FuncMaker Name
-entry = gets currentBlock
+entry = gets currentBlockName
 
 addBlock :: String -> FuncMaker Name
 addBlock name = do
@@ -176,21 +176,21 @@ addBlock name = do
 
 setBlock :: Name -> FuncMaker Name
 setBlock name = do
-  modify $ \s -> s { currentBlock = name }
+  modify $ \s -> s { currentBlockName = name }
   return name
 
 getBlock :: FuncMaker Name
-getBlock = gets currentBlock
+getBlock = gets currentBlockName
 
 modifyBlock :: BlockState -> FuncMaker ()
 modifyBlock newBlock = do
-  name <- gets currentBlock
+  name <- gets currentBlockName
   modify $ \s -> s { functionBlocks = Map.insert name newBlock
                                                  (functionBlocks s) }
 
-current :: FuncMaker BlockState
-current = do
-  name <- gets currentBlock
+currentBlock :: FuncMaker BlockState
+currentBlock = do
+  name <- gets currentBlockName
   blocks <- gets functionBlocks
   case Map.lookup name blocks of
     Just x -> return x
