@@ -11,11 +11,11 @@ import Interpreter
 main :: IO ()
 main = do
   args <- parseArgs
-  replMode <- isREPLMode args
-  if replMode
+  interpreterMode <- isInterpreterMode args
+  if interpreterMode
     then interpret
     else compile (sourceCodeFilename args) (objectFilename args)
   where
-    isREPLMode args = do
+    isInterpreterMode args = do
       stdinIsTerminal <- hIsTerminalDevice stdin
       return $ sourceCodeFilename args == Nothing && stdinIsTerminal

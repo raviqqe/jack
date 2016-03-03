@@ -18,23 +18,23 @@ import Codegen
 sourceName = "<stdin>"
 
 
--- REPL
+-- Interpreter
 
-type REPL = InputT IO
+type Interpreter = InputT IO
 
-runREPL :: REPL () -> IO ()
-runREPL = runInputT defaultSettings
+runInterpreter :: Interpreter () -> IO ()
+runInterpreter = runInputT defaultSettings
 
 
 -- functions
 
 initModule :: AST.Module
-initModule = emptyModule "Jack JIT REPL"
+initModule = emptyModule "Jack Interpreter"
 
 interpret :: IO ()
-interpret = runREPL (makeModuleFromInputLines initModule)
+interpret = runInterpreter (makeModuleFromInputLines initModule)
   where
-  makeModuleFromInputLines :: AST.Module -> REPL ()
+  makeModuleFromInputLines :: AST.Module -> Interpreter ()
   makeModuleFromInputLines mod = do
     inputLine <- getInputLine "ready> "
     case inputLine of
