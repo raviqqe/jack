@@ -79,7 +79,7 @@ instance IsString Name where
 
 -- FuncMaker state
 
-type SymbolTable = [(String, Operand)]
+type SymbolTable = Map.Map String Operand
 
 data FuncMakerState =
   FuncMakerState {
@@ -125,7 +125,7 @@ emptyFuncMaker =
   FuncMakerState {
     currentBlockName  = Name entryBlockName,
     functionBlocks    = Map.empty,
-    symbolTable       = [],
+    symbolTable       = Map.empty,
     anonInstrIndex    = 0,
     names             = Map.empty
   }
@@ -198,12 +198,12 @@ modifyBlock newBlock = do
 assign :: String -> Operand -> FuncMaker ()
 assign varName value = do
   symbols <- gets symbolTable
-  modify $ \s -> s { symbolTable = [(varName, value)] ++ symbols }
+  modify $ \s -> s { symbolTable = Map.insert varName value symbols }
 
 getVar :: String -> FuncMaker Operand
 getVar varName = do
   symbols <- gets symbolTable
-  case lookup varName symbols of
+  case Map.lookup varName symbols of
     Just x -> return x
     Nothing -> error $ "Local variable not in scope: " ++ varName
 
