@@ -64,23 +64,22 @@ binops = Map.fromList [
 codegenExpr :: S.Expr -> Codegen AST.Operand
 codegenExpr (S.UnaryOp operatorName arg) = do
   codegenExpr $ S.Call ("unary" ++ operatorName) [arg]
-codegenExpr (S.BinaryOp "=" (S.Var varName) value) = do
+codegenExpr (S.BinaryOp "=" (S.Var varName) expression) = do
   var <- getVar varName
-  convertedValue <- codegenExpr value
-  store var convertedValue
-  return convertedValue
+  value <- codegenExpr expression
+  store var value
+  return value
 codegenExpr (S.BinaryOp operator a b) = do
   case Map.lookup operator binops of
-    Just f -> do
+    Just instruction -> do
       ca <- codegenExpr a
       cb <- codegenExpr b
-      f ca cb
+      instruction ca cb
     Nothing -> error "No such operator"
 codegenExpr (S.Var varName) = load =<< getVar varName
-codegenExpr (S.Float n) = return $ constant $ C.Float (F.Double n)
-codegenExpr (S.Call function args) = do
-  largs <- mapM codegenExpr args
-  call (externf (AST.Name function)) largs
+codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
+codegenExpr (S.Call functionName args) = do
+  call (externf (AST.Name functionName)) =<< mapM codegenExpr args
 
 -- Compilation
 
@@ -90,8 +89,7 @@ liftError = runExceptT >=> either fail return
 codegen :: AST.Module -> [Either S.Expr S.Stmt] -> IO AST.Module
 codegen astMod toplevels = withContext $ \context ->
   liftError $ withModuleFromAST context astMod' $ \mod -> do
-    assembly <- moduleLLVMAssembly mod
-    putStrLn assembly
+    putStrLn =<< moduleLLVMAssembly mod
     return astMod'
   where
     astMod' = runModuleMaker astMod $ mapM codegenToplevel toplevels
