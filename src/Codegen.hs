@@ -70,8 +70,8 @@ type Names = Map.Map String Int
 uniqueName :: String -> Names -> (String, Names)
 uniqueName name names =
   case Map.lookup name names of
-    Nothing -> (name, Map.insert name 1 names)
-    Just index -> (name ++ show index, Map.insert name (index + 1) names)
+    Nothing -> (name, Map.insert name 0 names)
+    Just index -> (name ++ show (index + 1), Map.insert name (index + 1) names)
 
 instance IsString Name where
   fromString = Name . fromString
@@ -87,14 +87,14 @@ data CodegenState =
     functionBlocks  :: Map.Map Name BlockState, -- Blocks for a function
     symbolTable     :: SymbolTable, -- symbol table of function scope
     blockCount      :: Int, -- Count of basic blocks
-    count           :: Word, -- Count of unnamed instructions
+    anonInstrIndex  :: Word, -- Count of unnamed instructions
     names           :: Names -- Name Supply
   } deriving Show
 
 data BlockState =
   BlockState {
-    blockIndex :: Int, -- Block index
-    stack :: [Named Instruction], -- Stack of instructions
+    blockIndex      :: Int, -- Block index
+    instructions    :: [Named Instruction], -- Stack of instructions
     blockTerminator :: Maybe (Named Terminator) -- Block terminator
   } deriving Show
 
@@ -111,8 +111,8 @@ createBlocks :: CodegenState -> [BasicBlock]
 createBlocks s = map makeBlock $ sortBlocks $ Map.toList (functionBlocks s)
 
 makeBlock :: (Name, BlockState) -> BasicBlock
-makeBlock (label, (BlockState _ stack term))
-  = BasicBlock label stack (makeTerm term)
+makeBlock (label, (BlockState _ instructions term))
+  = BasicBlock label instructions (makeTerm term)
   where
     makeTerm (Just term) = term
     makeTerm Nothing = error $ "Block has no terminator: " ++ show label
@@ -130,7 +130,7 @@ emptyCodegen =
     functionBlocks  = Map.empty,
     symbolTable     = [],
     blockCount      = 1,
-    count           = 0,
+    anonInstrIndex  = 0,
     names           = Map.empty
   }
 
@@ -139,17 +139,17 @@ execCodegen codegen = execState (runCodegen codegen) emptyCodegen
 
 fresh :: Codegen Word
 fresh = do
-  i <- gets count
-  modify $ \state -> state { count = i + 1 }
+  i <- gets anonInstrIndex
+  modify $ \state -> state { anonInstrIndex = i + 1 }
   return (i + 1)
 
 instruction :: Instruction -> Codegen (Operand)
-instruction instr = do
+instruction i = do
   name <- fresh
   block <- current
   let reference = UnName name
-      instrs = stack block
-  modifyBlock $ block { stack = instrs ++ [reference := instr] }
+      is = instructions block
+  modifyBlock $ block { instructions = is ++ [reference := i] }
   return $ local reference
 
 terminator :: Named Terminator -> Codegen (Named Terminator)
