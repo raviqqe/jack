@@ -18,6 +18,7 @@ import qualified LLVM.General.AST.CallingConvention as CC
 import qualified LLVM.General.AST.Attribute as A
 import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
+import qualified NameSupply as NS
 
 
 -- Module level
@@ -63,38 +64,24 @@ double :: Type -- IEEE 754
 double = FloatingPointType 64 IEEE
 
 
--- Names
-
-type Names = Map.Map String Int
-
-uniqueName :: String -> Names -> (String, Names)
-uniqueName name names =
-  case Map.lookup name names of
-    Nothing -> (name, Map.insert name 0 names)
-    Just index -> (name ++ show (index + 1), Map.insert name (index + 1) names)
-
-instance IsString Name where
-  fromString = Name . fromString
-
-
 -- FuncMaker state
 
 type SymbolTable = Map.Map String Operand
 
 data FuncMakerState =
   FuncMakerState {
-    currentBlockName  :: Name, -- Name of the active block to append to
-    functionBlocks    :: Map.Map Name BlockState, -- Blocks for a function
-    symbolTable       :: SymbolTable, -- symbol table of function scope
-    anonInstrIndex    :: Word, -- Count of unnamed instructions
-    operandNames      :: Names -- Name Supply
+    currentBlockName  :: Name, -- Name of the active block to append instrs to
+    functionBlocks    :: Map.Map Name BlockState,
+    symbolTable       :: SymbolTable, -- Symbol table of function scope
+    anonInstrIndex    :: Word,
+    blockNames        :: NS.NameSupply
   } deriving Show
 
 data BlockState =
   BlockState {
-    blockIndex      :: Int, -- Block index
-    instructions    :: [Named Instruction], -- Stack of instructions
-    blockTerminator :: Maybe (Named Terminator) -- Block terminator
+    blockIndex      :: Int,
+    instructions    :: [Named Instruction],
+    blockTerminator :: Maybe (Named Terminator)
   } deriving Show
 
 
@@ -127,7 +114,7 @@ emptyFuncMaker =
     functionBlocks    = Map.empty,
     symbolTable       = Map.empty,
     anonInstrIndex    = 0,
-    operandNames      = Map.empty
+    blockNames        = NS.insert entryBlockName NS.empty
   }
 
 execFuncMaker :: FuncMaker a -> FuncMakerState
@@ -163,12 +150,12 @@ entry = gets currentBlockName
 addBlock :: String -> FuncMaker Name
 addBlock name = do
   blocks <- gets functionBlocks
-  lessNames <- gets operandNames
+  lessNames <- gets blockNames
   let newBlock = emptyBlock (Map.size blocks)
-      (qualifiedName, moreNames) = uniqueName name lessNames
+      (qualifiedName, moreNames) = NS.uniqueName name lessNames
   modify $ \s -> s { functionBlocks = Map.insert (Name qualifiedName) newBlock
                                                  blocks,
-                     operandNames = moreNames }
+                     blockNames = moreNames }
   return $ Name qualifiedName
   where
     emptyBlock index = BlockState index [] Nothing
@@ -268,3 +255,9 @@ condbr cond whenTrue whenFalse
 
 ret :: Operand -> FuncMaker (Named Terminator)
 ret value = terminator $ Do $ Ret (Just value) []
+
+
+-- Name
+
+instance IsString Name where
+  fromString = Name . fromString
