@@ -15,6 +15,9 @@ module Codegen.Instruction (
   br,
   condbr,
   ret,
+
+  localRef,
+  globalRef
 ) where
 
 import LLVM.General.AST
@@ -97,3 +100,12 @@ condbr cond whenTrue whenFalse
 
 ret :: Operand -> FuncMaker (Named Terminator)
 ret value = terminator $ Do $ Ret (Just value) []
+
+
+-- References
+
+localRef :: Name -> Operand
+localRef = LocalReference double
+
+globalRef :: Name -> Operand
+globalRef = ConstantOperand . C.GlobalReference double

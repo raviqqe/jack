@@ -13,9 +13,6 @@ module Codegen.FuncMaker (
 
   setSymbol,
   referToSymbol,
-
-  localRef,
-  globalRef
 ) where
 
 import Control.Monad.State
@@ -25,10 +22,8 @@ import Data.List
 import Data.Word
 import qualified Data.Map as Map
 import LLVM.General.AST
-import qualified LLVM.General.AST.Constant as C
 
 import qualified NameSupply as NS
-import Codegen.Type
 
 
 
@@ -174,12 +169,3 @@ referToSymbol symbol = do
   case Map.lookup symbol symbols of
     Just x -> return x
     Nothing -> error $ "Local symbol not in scope: " ++ symbol
-
-
--- References
-
-localRef :: Name -> Operand
-localRef = LocalReference double
-
-globalRef :: Name -> Operand
-globalRef = ConstantOperand . C.GlobalReference double
