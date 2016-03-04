@@ -12,17 +12,16 @@ import Control.Monad.State
 import Control.Applicative
 import LLVM.General.AST
 import LLVM.General.AST.Global
-import qualified LLVM.General.AST as AST
 
 
 
-newtype ModuleMaker a = ModuleMaker { unModuleMaker :: State AST.Module a }
-  deriving (Functor, Applicative, Monad, MonadState AST.Module)
+newtype ModuleMaker a = ModuleMaker { unModuleMaker :: State Module a }
+  deriving (Functor, Applicative, Monad, MonadState Module)
 
-runModuleMaker :: AST.Module -> ModuleMaker a -> AST.Module
+runModuleMaker :: Module -> ModuleMaker a -> Module
 runModuleMaker = flip (execState . unModuleMaker)
 
-emptyModule :: String -> AST.Module
+emptyModule :: String -> Module
 emptyModule name = defaultModule { moduleName = name }
 
 addDefinition :: Definition -> ModuleMaker ()
