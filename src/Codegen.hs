@@ -34,7 +34,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
     blocks = blocksInFunc $ do
       forM_ argNames $ \argName -> do
         var <- alloca double
-        store var (localRef (AST.Name argName))
+        store var (localRef double (AST.Name argName))
         setSymbol argName var
       ret =<< codegenExpr body
 
@@ -79,7 +79,7 @@ codegenExpr (S.BinaryOp operator a b) = do
 codegenExpr (S.Var varName) = load =<< referToSymbol varName
 codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.Call functionName args) = do
-  call (globalRef (AST.Name functionName)) =<< mapM codegenExpr args
+  call (globalRef double (AST.Name functionName)) =<< mapM codegenExpr args
 
 -- Compilation
 

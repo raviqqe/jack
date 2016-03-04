@@ -37,7 +37,7 @@ instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
   resultName <- getNewAnonName
   appendInstruction (resultName := instr)
-  return $ localRef resultName
+  return $ localRef double resultName
 
 noOpInstruction :: Instruction -> FuncMaker ()
 noOpInstruction instr = appendInstruction (Do instr)
@@ -104,8 +104,8 @@ ret value = terminator $ Do $ Ret (Just value) []
 
 -- References
 
-localRef :: Name -> Operand
-localRef = LocalReference double
+localRef :: Type -> Name -> Operand
+localRef = LocalReference
 
-globalRef :: Name -> Operand
-globalRef = ConstantOperand . C.GlobalReference double
+globalRef :: Type -> Name -> Operand
+globalRef typ = ConstantOperand . C.GlobalReference typ
