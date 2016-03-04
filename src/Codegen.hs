@@ -8,8 +8,10 @@ module Codegen (
 import Control.Monad.Except
 import Data.String
 import qualified Data.Map as Map
+import LLVM.General.Analysis
 import LLVM.General.Module
 import LLVM.General.Context
+import LLVM.General.PassManager
 import qualified LLVM.General.AST as AST
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.Float as F
@@ -18,6 +20,7 @@ import qualified LLVM.General.AST.FloatingPointPredicate as FP
 import Codegen.ModuleMaker
 import Codegen.FuncMaker
 import Codegen.Instruction
+import Codegen.Pass
 import Codegen.Type
 import qualified Syntax as S
 
@@ -87,12 +90,15 @@ liftError :: ExceptT String IO a -> IO a
 liftError = runExceptT >=> either fail return
 
 codegen :: AST.Module -> [Either S.Expr S.Stmt] -> IO AST.Module
-codegen astMod toplevels = withContext $ \context ->
-  liftError $ withModuleFromAST context astMod' $ \mod -> do
-    putStrLn =<< moduleLLVMAssembly mod
-    return astMod'
-  where
-    astMod' = runModuleMaker astMod $ mapM codegenToplevel toplevels
+codegen astMod toplevels = withContext $ \context -> do
+  let newAstMod = runModuleMaker astMod $ mapM codegenToplevel toplevels
+  liftError $ withModuleFromAST context newAstMod $ \mod -> do
+    withPassManager passes $ \passManager -> do
+      liftError $ verify mod
+      ok <- runPassManager passManager mod
+      unless ok $ fail "Pass manager failed."
+      putStrLn =<< moduleLLVMAssembly mod
+      return =<< moduleAST mod
 
 -- Name
 
