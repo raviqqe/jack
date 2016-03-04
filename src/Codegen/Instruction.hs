@@ -1,4 +1,21 @@
-module Codegen.Instruction where
+module Codegen.Instruction (
+  fadd,
+  fsub,
+  fmul,
+  fdiv,
+  fcmp,
+  uitofp,
+  constant,
+
+  call,
+  alloca,
+  store,
+  load,
+
+  br,
+  condbr,
+  ret,
+) where
 
 import LLVM.General.AST
 import qualified LLVM.General.AST.Constant as C
