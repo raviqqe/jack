@@ -1,7 +1,5 @@
 module Codegen.Instruction where
 
-import Control.Monad.State
-import Data.Word
 import LLVM.General.AST
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.CallingConvention as CC
@@ -17,28 +15,16 @@ import Codegen.Type
 
 instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
-  anonIndex <- nextAnonInstrIndex
-  block <- getBlock
-  let resultName = UnName anonIndex
-  modifyBlock $ block { instructions = instructions block
-                                       ++ [resultName := instr] }
+  resultName <- getNewAnonName
+  appendInstruction (resultName := instr)
   return $ local resultName
-  where
-    nextAnonInstrIndex :: FuncMaker Word
-    nextAnonInstrIndex = do
-      index <- gets anonInstrIndex
-      modify $ \s -> s { anonInstrIndex = index + 1 }
-      return (index + 1)
 
 noOpInstruction :: Instruction -> FuncMaker ()
-noOpInstruction instr = do
-  block <- getBlock
-  modifyBlock $ block { instructions = instructions block ++ [Do instr] }
+noOpInstruction instr = appendInstruction (Do instr)
 
 terminator :: Named Terminator -> FuncMaker (Named Terminator)
 terminator arnold = do
-  block <- getBlock
-  modifyBlock $ block { blockTerminator = Just arnold }
+  setTerminator arnold
   return arnold
 
 

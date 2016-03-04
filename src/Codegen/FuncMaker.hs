@@ -2,15 +2,14 @@
 
 module Codegen.FuncMaker (
   FuncMaker,
-  instructions,
-  anonInstrIndex,
-  blockTerminator,
+  getNewAnonName,
   blocksInFunc,
 
   setBlock,
   getBlock,
   addBlock,
-  modifyBlock,
+  appendInstruction,
+  setTerminator,
 
   setSymbol,
   referToSymbol,
@@ -96,6 +95,17 @@ execFuncMaker funcMaker
     entryBlockName :: String
     entryBlockName = "entry"
 
+getNewAnonName :: FuncMaker Name
+getNewAnonName = do
+  anonIndex <- nextAnonInstrIndex
+  return (UnName anonIndex)
+  where
+    nextAnonInstrIndex :: FuncMaker Word
+    nextAnonInstrIndex = do
+      index <- gets anonInstrIndex
+      modify $ \s -> s { anonInstrIndex = index + 1 }
+      return (index + 1)
+
 blocksInFunc :: FuncMaker a -> [BasicBlock]
 blocksInFunc = createBasicBlocks . execFuncMaker
 
@@ -138,6 +148,17 @@ modifyBlock newBlock = do
   name <- getBlockName
   modify $ \s -> s { functionBlocks = Map.insert name newBlock
                                                  (functionBlocks s) }
+
+appendInstruction :: Named Instruction -> FuncMaker ()
+appendInstruction instruction = do
+  block <- getBlock
+  modifyBlock $ block { instructions = instructions block ++ [instruction] }
+
+setTerminator :: Named Terminator -> FuncMaker ()
+setTerminator arnold = do
+  block <- getBlock
+  modifyBlock $ block { blockTerminator = Just arnold }
+
 
 
 -- Symbol Table
