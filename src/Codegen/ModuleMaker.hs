@@ -1,6 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Codegen.ModuleMaker where
+module Codegen.ModuleMaker (
+  ModuleMaker,
+  runModuleMaker,
+  emptyModule,
+  define,
+  declare
+) where
 
 import Control.Monad.State
 import Control.Applicative
