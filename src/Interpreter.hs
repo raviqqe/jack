@@ -39,7 +39,6 @@ interpret = runInterpreter (makeModuleFromInputLines initModule)
     case inputLine of
       Nothing   -> outputStrLn "Goodbye."
       Just line -> do
-        --interpretOneLine line >> interpretInputLines
         maybeMod <- liftIO $ incorporateToplevels mod line
         makeModuleFromInputLines (case maybeMod of
           Just newMod -> newMod
