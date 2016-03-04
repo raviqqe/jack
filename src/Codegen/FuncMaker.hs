@@ -14,8 +14,8 @@ module Codegen.FuncMaker (
   setSymbol,
   referToSymbol,
 
-  local,
-  global
+  localRef,
+  globalRef
 ) where
 
 import Control.Monad.State
@@ -178,8 +178,8 @@ referToSymbol symbol = do
 
 -- References
 
-local :: Name -> Operand
-local = LocalReference double
+localRef :: Name -> Operand
+localRef = LocalReference double
 
-global :: Name -> Operand
-global = ConstantOperand . C.GlobalReference double
+globalRef :: Name -> Operand
+globalRef = ConstantOperand . C.GlobalReference double

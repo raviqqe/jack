@@ -34,7 +34,7 @@ instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
   resultName <- getNewAnonName
   appendInstruction (resultName := instr)
-  return $ local resultName
+  return $ localRef resultName
 
 noOpInstruction :: Instruction -> FuncMaker ()
 noOpInstruction instr = appendInstruction (Do instr)
