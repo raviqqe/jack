@@ -86,15 +86,15 @@ codegenExpr (S.Call functionName args) = do
 
 -- Compilation
 
-liftError :: ExceptT String IO a -> IO a
-liftError = runExceptT >=> either fail return
+liftExceptT :: ExceptT String IO a -> IO a
+liftExceptT = runExceptT >=> either fail return
 
 codegen :: AST.Module -> [Either S.Expr S.Stmt] -> IO AST.Module
 codegen astMod toplevels = withContext $ \context -> do
   let newAstMod = runModuleMaker astMod $ mapM codegenToplevel toplevels
-  liftError $ withModuleFromAST context newAstMod $ \mod -> do
+  liftExceptT $ withModuleFromAST context newAstMod $ \mod -> do
     withPassManager passes $ \passManager -> do
-      liftError $ verify mod
+      liftExceptT $ verify mod
       ok <- runPassManager passManager mod
       unless ok $ fail "Pass manager failed."
       putStrLn =<< moduleLLVMAssembly mod
