@@ -31,7 +31,7 @@ executable jack
     , containers           >= 0.4
     , optparse-applicative
   hs-source-dirs: src
-  ghc-options: -Wall -fno-warn-name-shadowing
+  ghc-options: -Wall -fno-warn-name-shadowing -fno-warn-orphans
 
 library
   default-language:    Haskell2010
