@@ -39,7 +39,8 @@ type SymbolTable = Map.Map String Operand
 
 data FuncMakerState =
   FuncMakerState {
-    currentBlockName  :: Name, -- Name of the active block to append instrs to
+    currentBlockName  :: Maybe Name,
+      -- Name of the active block to append instructions to
     functionBlocks    :: Map.Map Name BlockState,
     symbolTable       :: SymbolTable, -- Symbol table of function scope
     anonInstrIndex    :: Word,
@@ -77,7 +78,7 @@ createBasicBlocks s
 emptyFuncMaker :: FuncMakerState
 emptyFuncMaker =
   FuncMakerState {
-    currentBlockName  = Name "DEADBEEF",
+    currentBlockName  = Nothing,
     functionBlocks    = Map.empty,
     symbolTable       = Map.empty,
     anonInstrIndex    = 0,
@@ -115,19 +116,26 @@ addBlock name = do
     emptyBlock index = BlockState index [] Nothing
 
 setBlock :: Name -> FuncMaker ()
-setBlock name = modify $ \s -> s { currentBlockName = name }
+setBlock name = modify $ \s -> s { currentBlockName = Just name }
 
 getBlock :: FuncMaker BlockState
 getBlock = do
-  name <- gets currentBlockName
+  name <- getBlockName
   blocks <- gets functionBlocks
   case Map.lookup name blocks of
     Just x -> return x
     Nothing -> error $ "No such block: " ++ show name
 
+getBlockName :: FuncMaker Name
+getBlockName = do
+  maybeName <- gets currentBlockName
+  return (case maybeName of
+    Just name -> name
+    Nothing -> error "Current block is not set yet.")
+
 modifyBlock :: BlockState -> FuncMaker ()
 modifyBlock newBlock = do
-  name <- gets currentBlockName
+  name <- getBlockName
   modify $ \s -> s { functionBlocks = Map.insert name newBlock
                                                  (functionBlocks s) }
 
