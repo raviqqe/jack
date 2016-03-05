@@ -4,7 +4,6 @@ module Interpreter (
 
 import Control.Monad.Trans
 import System.Console.Haskeline
-import LLVM.General.AST
 
 import Parser
 import Codegen

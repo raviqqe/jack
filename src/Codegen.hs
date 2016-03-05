@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Codegen (
+  Module,
   codegen,
   emptyModule,
   assemblyFromModule
@@ -9,10 +10,10 @@ module Codegen (
 import Control.Monad.Except
 import qualified Data.Map as Map
 import LLVM.General.Analysis
-import LLVM.General.Module
 import LLVM.General.Context
 import LLVM.General.PassManager
-import qualified LLVM.General.AST as AST
+import qualified LLVM.General.Module as M
+import LLVM.General.AST
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.Float as F
 import qualified LLVM.General.AST.FloatingPointPredicate as FP
@@ -27,8 +28,8 @@ import Util
 
 
 
-toSignatures :: [String] -> [(AST.Type, AST.Name)]
-toSignatures = map (\name -> (double, AST.Name name))
+toSignatures :: [String] -> [(Type, Name)]
+toSignatures = map (\name -> (double, Name name))
 
 codegenToplevel :: Either S.Expr S.Stmt -> ModuleMaker ()
 codegenToplevel (Right (S.Function name argNames body)) = do
@@ -38,7 +39,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
     blocks = blocksInFunc $ do
       forM_ argNames $ \argName -> do
         var <- alloca double
-        store var (localRef double (AST.Name argName))
+        store var (localRef double (Name argName))
         setSymbol argName var
       ret =<< codegenExpr body
 
@@ -53,11 +54,10 @@ codegenToplevel (Left expression) = define double "main" [] blocks
 
 -- Operations
 
-lt :: AST.Operand -> AST.Operand -> FuncMaker AST.Operand
+lt :: Operand -> Operand -> FuncMaker Operand
 lt a b = uitofp =<< fcmp FP.ULT a b
 
-binOpInstr :: Map.Map String
-                       (AST.Operand -> AST.Operand -> FuncMaker AST.Operand)
+binOpInstr :: Map.Map String (Operand -> Operand -> FuncMaker Operand)
 binOpInstr = Map.fromList [
     ("+", fadd),
     ("-", fsub),
@@ -66,7 +66,7 @@ binOpInstr = Map.fromList [
     ("<", lt)
   ]
 
-codegenExpr :: S.Expr -> FuncMaker AST.Operand
+codegenExpr :: S.Expr -> FuncMaker Operand
 codegenExpr (S.UnaryOp operatorName arg) = do
   codegenExpr $ S.Call ("unary" ++ operatorName) [arg]
 codegenExpr (S.BinaryOp "=" (S.Var varName) expression) = do
@@ -84,24 +84,24 @@ codegenExpr (S.BinaryOp operator a b) = do
 codegenExpr (S.Var varName) = load =<< referToSymbol varName
 codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.Call functionName args) = do
-  call (globalRef double (AST.Name functionName)) =<< mapM codegenExpr args
+  call (globalRef double (Name functionName)) =<< mapM codegenExpr args
 
 -- Compilation
 
-codegen :: AST.Module -> [Either S.Expr S.Stmt] -> IO AST.Module
-codegen astMod toplevels = withContext $ \context -> do
-  let newAstMod = runModuleMaker astMod $ mapM codegenToplevel toplevels
-  liftExceptT $ withModuleFromAST context newAstMod $ \mod -> do
+codegen :: Module -> [Either S.Expr S.Stmt] -> IO Module
+codegen mod toplevels = withContext $ \context -> do
+  let newMod = runModuleMaker mod $ mapM codegenToplevel toplevels
+  liftExceptT $ M.withModuleFromAST context newMod $ \modObj -> do
     withPassManager passes $ \passManager -> do
-      liftExceptT $ verify mod
-      ok <- runPassManager passManager mod
+      liftExceptT $ verify modObj
+      ok <- runPassManager passManager modObj
       unless ok $ fail "Pass manager failed."
-      moduleAST mod
+      M.moduleAST modObj
 
 -- Utils
 
-assemblyFromModule :: AST.Module -> IO String
-assemblyFromModule astMod = do
+assemblyFromModule :: Module -> IO String
+assemblyFromModule mod = do
   withContext $ \context -> do
-    liftExceptT $ withModuleFromAST context astMod $ \mod -> do
-      moduleLLVMAssembly mod
+    liftExceptT $ M.withModuleFromAST context mod $ \modObj -> do
+      M.moduleLLVMAssembly modObj

@@ -4,9 +4,9 @@ module Interpreter.JIT (
 
 import Foreign.Ptr ( FunPtr, castFunPtr )
 import LLVM.General.Context
-import LLVM.General.Module
-import qualified LLVM.General.AST as AST
+import LLVM.General.AST
 import LLVM.General.ExecutionEngine
+import qualified LLVM.General.Module as M
 
 import Util
 
@@ -26,17 +26,17 @@ withMyJIT context
     framePtrElim    = Nothing
     fastInstrSelect = Nothing
 
-withExecMod :: AST.Module -> (ExecutableModule MCJIT -> IO a) -> IO a
-withExecMod astMod runExecMod = do
+withExecMod :: Module -> (ExecutableModule MCJIT -> IO a) -> IO a
+withExecMod mod runExecMod = do
   withContext $ \context ->
     withMyJIT context $ \executionEngine ->
-      liftExceptT $ withModuleFromAST context astMod $ \mod -> do
-        withModuleInEngine executionEngine mod runExecMod
+      liftExceptT $ M.withModuleFromAST context mod $ \modObj -> do
+        withModuleInEngine executionEngine modObj runExecMod
 
-runJIT :: AST.Module -> IO ()
-runJIT astMod = do
-  withExecMod astMod $ \execMod -> do
-    mainFuncPtr <- getFunction execMod (AST.Name "main")
+runJIT :: Module -> IO ()
+runJIT mod = do
+  withExecMod mod $ \execMod -> do
+    mainFuncPtr <- getFunction execMod (Name "main")
     case mainFuncPtr of
       Just funcPtr -> do
         result <- callFuncPtr funcPtr
