@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Codegen (
   Module,
   codegen,
@@ -28,8 +26,15 @@ import Util
 
 
 
-toSignatures :: [String] -> [(Type, Name)]
-toSignatures = map (\name -> (double, Name name))
+codegen :: Module -> [Either S.Expr S.Stmt] -> IO Module
+codegen mod toplevels = withContext $ \context -> do
+  let newMod = runModuleMaker mod $ mapM codegenToplevel toplevels
+  liftExceptT $ M.withModuleFromAST context newMod $ \modObj -> do
+    withPassManager passes $ \passManager -> do
+      liftExceptT $ verify modObj
+      ok <- runPassManager passManager modObj
+      unless ok $ fail "Pass manager failed."
+      M.moduleAST modObj
 
 codegenToplevel :: Either S.Expr S.Stmt -> ModuleMaker ()
 codegenToplevel (Right (S.Function name argNames body)) = do
@@ -42,29 +47,12 @@ codegenToplevel (Right (S.Function name argNames body)) = do
         store var (localRef double (Name argName))
         setSymbol argName var
       ret =<< codegenExpr body
-
 codegenToplevel (Right (S.Extern name argNames)) = declare double name args
   where
     args = toSignatures argNames
-
 codegenToplevel (Left expression) = define double "main" [] blocks
   where
     blocks = blocksInFunc $ ret =<< codegenExpr expression
-
-
--- Operations
-
-lt :: Operand -> Operand -> FuncMaker Operand
-lt a b = uitofp =<< fcmp FP.ULT a b
-
-binOpInstr :: Map.Map String (Operand -> Operand -> FuncMaker Operand)
-binOpInstr = Map.fromList [
-    ("+", fadd),
-    ("-", fsub),
-    ("*", fmul),
-    ("/", fdiv),
-    ("<", lt)
-  ]
 
 codegenExpr :: S.Expr -> FuncMaker Operand
 codegenExpr (S.UnaryOp operatorName arg) = do
@@ -86,19 +74,20 @@ codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.Call functionName args) = do
   call (globalRef double (Name functionName)) =<< mapM codegenExpr args
 
--- Compilation
+toSignatures :: [String] -> [(Type, Name)]
+toSignatures = map (\name -> (double, Name name))
 
-codegen :: Module -> [Either S.Expr S.Stmt] -> IO Module
-codegen mod toplevels = withContext $ \context -> do
-  let newMod = runModuleMaker mod $ mapM codegenToplevel toplevels
-  liftExceptT $ M.withModuleFromAST context newMod $ \modObj -> do
-    withPassManager passes $ \passManager -> do
-      liftExceptT $ verify modObj
-      ok <- runPassManager passManager modObj
-      unless ok $ fail "Pass manager failed."
-      M.moduleAST modObj
-
--- Utils
+binOpInstr :: Map.Map String (Operand -> Operand -> FuncMaker Operand)
+binOpInstr = Map.fromList [
+    ("+", fadd),
+    ("-", fsub),
+    ("*", fmul),
+    ("/", fdiv),
+    ("<", lt)
+  ]
+  where
+    lt :: Operand -> Operand -> FuncMaker Operand
+    lt a b = uitofp =<< fcmp FP.ULT a b
 
 assemblyFromModule :: Module -> IO String
 assemblyFromModule mod = do
