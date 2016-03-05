@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Codegen (
-  Module,
   codegen,
   emptyModule,
   assemblyFromModule

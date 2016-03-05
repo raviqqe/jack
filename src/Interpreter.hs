@@ -4,7 +4,7 @@ module Interpreter (
 
 import Control.Monad.Trans
 import System.Console.Haskeline
-import qualified LLVM.General.AST as AST
+import LLVM.General.AST
 
 import Parser
 import Codegen
@@ -28,13 +28,13 @@ runInterpreter = runInputT defaultSettings
 
 -- functions
 
-initModule :: AST.Module
+initModule :: Module
 initModule = emptyModule "Jack Interpreter"
 
 interpret :: IO ()
 interpret = runInterpreter (makeModuleFromInputLines initModule)
   where
-    makeModuleFromInputLines :: AST.Module -> Interpreter ()
+    makeModuleFromInputLines :: Module -> Interpreter ()
     makeModuleFromInputLines mod = do
       inputLine <- getInputLine "ready> "
       case inputLine of
@@ -48,8 +48,8 @@ interpret = runInterpreter (makeModuleFromInputLines initModule)
               makeModuleFromInputLines newMod
             Nothing -> makeModuleFromInputLines mod
 
-incorporateToplevels :: AST.Module -> String -> IO (Maybe AST.Module)
-incorporateToplevels astMod sourceCode
+incorporateToplevels :: Module -> String -> IO (Maybe Module)
+incorporateToplevels mod sourceCode
   = case parseToplevels sourceName sourceCode of
     Left err -> print err >> return Nothing
-    Right toplevels -> return . Just =<< codegen astMod toplevels
+    Right toplevels -> return . Just =<< codegen mod toplevels
