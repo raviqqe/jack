@@ -34,19 +34,19 @@ initModule = emptyModule "Jack Interpreter"
 interpret :: IO ()
 interpret = runInterpreter (makeModuleFromInputLines initModule)
   where
-  makeModuleFromInputLines :: AST.Module -> Interpreter ()
-  makeModuleFromInputLines mod = do
-    inputLine <- getInputLine "ready> "
-    case inputLine of
-      Nothing   -> outputStrLn "Goodbye."
-      Just line -> do
-        maybeMod <- liftIO $ incorporateToplevels mod line
-        case maybeMod of
-          Just newMod -> do
-            liftIO $ putStrLn =<< assemblyFromModule newMod
-            liftIO $ runJIT newMod
-            makeModuleFromInputLines newMod
-          Nothing -> makeModuleFromInputLines mod
+    makeModuleFromInputLines :: AST.Module -> Interpreter ()
+    makeModuleFromInputLines mod = do
+      inputLine <- getInputLine "ready> "
+      case inputLine of
+        Nothing   -> outputStrLn "Goodbye."
+        Just line -> do
+          maybeMod <- liftIO $ incorporateToplevels mod line
+          case maybeMod of
+            Just newMod -> do
+              liftIO $ putStrLn =<< assemblyFromModule newMod
+              liftIO $ runJIT newMod
+              makeModuleFromInputLines newMod
+            Nothing -> makeModuleFromInputLines mod
 
 incorporateToplevels :: AST.Module -> String -> IO (Maybe AST.Module)
 incorporateToplevels astMod sourceCode
