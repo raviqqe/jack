@@ -23,5 +23,5 @@ compileSourceCode sourceName sourceCode = do
   case parseToplevels sourceName sourceCode of
     Left err -> print err
     Right toplevels -> do
-      _ <- codegen (emptyModule sourceName) toplevels
-      return ()
+      astMod <- codegen (emptyModule sourceName) toplevels
+      putStrLn =<< assemblyFromModule astMod

@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Codegen (
+  Module,
   codegen,
-  emptyModule
+  emptyModule,
+  assemblyFromModule
 ) where
 
 import Control.Monad.Except
@@ -101,3 +103,11 @@ codegen astMod toplevels = withContext $ \context -> do
 
 instance IsString AST.Name where
   fromString = AST.Name . fromString
+
+-- Utils
+
+assemblyFromModule :: AST.Module -> IO String
+assemblyFromModule astMod = do
+  withContext $ \context -> do
+    liftExceptT $ withModuleFromAST context astMod $ \mod -> do
+      moduleLLVMAssembly mod

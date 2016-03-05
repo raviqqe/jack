@@ -2,12 +2,13 @@ module Interpreter.JIT (
   runJIT
 ) where
 
-import Control.Monad.Except
 import Foreign.Ptr ( FunPtr, castFunPtr )
 import LLVM.General.Context
 import LLVM.General.Module
 import qualified LLVM.General.AST as AST
 import LLVM.General.ExecutionEngine
+
+import Util
 
 
 
@@ -25,15 +26,14 @@ withMyJIT context
     framePtrElim    = Nothing
     fastInstrSelect = Nothing
 
-withExecMod :: AST.Module -> (ExecutableModule MCJIT -> IO a)
-               -> IO (Either String a)
+withExecMod :: AST.Module -> (ExecutableModule MCJIT -> IO a) -> IO a
 withExecMod astMod runExecMod = do
   withContext $ \context ->
     withMyJIT context $ \executionEngine ->
-      runExceptT $ withModuleFromAST context astMod $ \mod -> do
+      liftExceptT $ withModuleFromAST context astMod $ \mod -> do
         withModuleInEngine executionEngine mod runExecMod
 
-runJIT :: AST.Module -> IO (Either String ())
+runJIT :: AST.Module -> IO ()
 runJIT astMod = do
   withExecMod astMod $ \execMod -> do
     mainFuncPtr <- getFunction execMod (AST.Name "main")
