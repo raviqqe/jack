@@ -56,8 +56,9 @@ codegenToplevel (Left expression) = define double "main" [] blocks
 lt :: AST.Operand -> AST.Operand -> FuncMaker AST.Operand
 lt a b = uitofp =<< fcmp FP.ULT a b
 
-binops :: Map.Map String (AST.Operand -> AST.Operand -> FuncMaker AST.Operand)
-binops = Map.fromList [
+binOpInstr :: Map.Map String
+                       (AST.Operand -> AST.Operand -> FuncMaker AST.Operand)
+binOpInstr = Map.fromList [
     ("+", fadd),
     ("-", fsub),
     ("*", fmul),
@@ -74,7 +75,7 @@ codegenExpr (S.BinaryOp "=" (S.Var varName) expression) = do
   store var value
   return value
 codegenExpr (S.BinaryOp operator a b) = do
-  case Map.lookup operator binops of
+  case Map.lookup operator binOpInstr of
     Just instruction -> do
       ca <- codegenExpr a
       cb <- codegenExpr b
