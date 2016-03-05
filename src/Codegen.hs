@@ -8,7 +8,6 @@ module Codegen (
 ) where
 
 import Control.Monad.Except
-import Data.String
 import qualified Data.Map as Map
 import LLVM.General.Analysis
 import LLVM.General.Module
@@ -98,11 +97,6 @@ codegen astMod toplevels = withContext $ \context -> do
       ok <- runPassManager passManager mod
       unless ok $ fail "Pass manager failed."
       moduleAST mod
-
--- Name
-
-instance IsString AST.Name where
-  fromString = AST.Name . fromString
 
 -- Utils
 
