@@ -2,19 +2,14 @@ module Interpreter (
   interpret
 ) where
 
+import Control.Monad
 import Control.Monad.Trans
 import System.Console.Haskeline
 
 import Parser
 import Codegen
-import Interpreter.JIT
+import Interpreter.Eval
 
-
-
--- Constants
-
-sourceName :: String
-sourceName = "<stdin>"
 
 
 -- Interpreter
@@ -27,9 +22,6 @@ runInterpreter = runInputT defaultSettings
 
 -- functions
 
-initModule :: Module
-initModule = emptyModule "Jack Interpreter"
-
 interpret :: IO ()
 interpret = runInterpreter (makeModuleFromInputLines initModule)
   where
@@ -39,16 +31,24 @@ interpret = runInterpreter (makeModuleFromInputLines initModule)
       case inputLine of
         Nothing   -> outputStrLn "Goodbye."
         Just line -> do
-          maybeMod <- liftIO $ incorporateToplevels mod line
-          case maybeMod of
-            Just newMod -> do
-              liftIO $ putStrLn =<< assemblyFromModule newMod
-              liftIO $ runJIT newMod
-              makeModuleFromInputLines newMod
-            Nothing -> makeModuleFromInputLines mod
+          newMod <- processResult mod (parseToplevel sourceName line)
+          makeModuleFromInputLines newMod
+      where
+        processResult :: Module -> Either ParseError Toplevel
+                         -> Interpreter Module
+        processResult mod (Right toplevel) = do
+          newMod <- liftIO $ codegen mod [toplevel]
+          liftIO $ putStrLn =<< assemblyFromModule newMod
+          when (isExpr toplevel) $ do
+            result <- liftIO $ eval newMod
+            outputStrLn ("Evaluated to: " ++ result)
+          return newMod
+        processResult mod (Left err) = do
+          liftIO $ print err
+          return mod
 
-incorporateToplevels :: Module -> String -> IO (Maybe Module)
-incorporateToplevels mod sourceCode
-  = case parseToplevels sourceName sourceCode of
-    Left err -> print err >> return Nothing
-    Right toplevels -> return . Just =<< codegen mod toplevels
+initModule :: Module
+initModule = emptyModule "Jack Interpreter"
+
+sourceName :: String
+sourceName = "<stdin>"

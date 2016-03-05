@@ -1,6 +1,10 @@
 module Parser (
+  Toplevel,
+  ParseError,
+  parseToplevel,
   parseToplevels,
-  parseStmts
+  parseStmts,
+  isExpr
 ) where
 
 import Control.Applicative ((<$>))
@@ -93,6 +97,10 @@ toplevel :: Parser Toplevel
 toplevel = try (toplevelExpr >>= (return . Left))
            <|> (statement    >>= (return . Right))
 
+parseToplevel :: String -> String -> Either ParseError Toplevel
+parseToplevel sourceName sourceCode
+  = parse (contents $ toplevel) sourceName sourceCode
+
 parseToplevels :: String -> String -> Either ParseError [Toplevel]
 parseToplevels sourceName sourceCode
   = parse (contents $ many toplevel) sourceName sourceCode
@@ -100,3 +108,9 @@ parseToplevels sourceName sourceCode
 parseStmts :: String -> String -> Either ParseError [Stmt]
 parseStmts sourceName sourceCode
   = parse (contents $ many statement) sourceName sourceCode
+
+-- Utils
+
+isExpr :: Toplevel -> Bool
+isExpr (Left _) = True
+isExpr (Right _) = False

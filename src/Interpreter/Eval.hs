@@ -1,5 +1,5 @@
-module Interpreter.JIT (
-  runJIT
+module Interpreter.Eval (
+  eval
 ) where
 
 import Foreign.Ptr ( FunPtr, castFunPtr )
@@ -33,12 +33,15 @@ withExecMod mod runExecMod = do
       liftExceptT $ M.withModuleFromAST context mod $ \modObj -> do
         withModuleInEngine executionEngine modObj runExecMod
 
-runJIT :: Module -> IO ()
-runJIT mod = do
+eval :: Module -> IO String
+eval mod = do
   withExecMod mod $ \execMod -> do
-    mainFuncPtr <- getFunction execMod (Name "main")
+    mainFuncPtr <- getFunction execMod (Name evaluatedFuncName)
     case mainFuncPtr of
       Just funcPtr -> do
         result <- callFuncPtr funcPtr
-        putStrLn $ "Evaluated to: " ++ show result
-      Nothing -> return ()
+        return (show result)
+      Nothing -> fail ("The function, \"" ++ evaluatedFuncName
+                       ++ "\" to be evaluated was not found.")
+  where
+    evaluatedFuncName = "main"
