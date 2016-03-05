@@ -3,7 +3,7 @@ module Interpreter (
 ) where
 
 import Control.Monad
-import Control.Monad.Trans
+import Control.Monad.State
 import System.Console.Haskeline
 
 import Parser
@@ -12,43 +12,35 @@ import Interpreter.Eval
 
 
 
--- Interpreter
-
-type Interpreter = InputT IO
+type Interpreter = StateT Module (InputT IO)
 
 runInterpreter :: Interpreter () -> IO ()
-runInterpreter = runInputT defaultSettings
-
-
--- functions
+runInterpreter interpreter
+  = runInputT defaultSettings
+              (evalStateT interpreter (emptyModule "Jack Interpreter"))
 
 interpret :: IO ()
-interpret = runInterpreter (makeModuleFromInputLines initModule)
+interpret = runInterpreter interpretInputLines
   where
-    makeModuleFromInputLines :: Module -> Interpreter ()
-    makeModuleFromInputLines mod = do
-      inputLine <- getInputLine "ready> "
+    interpretInputLines :: Interpreter ()
+    interpretInputLines = do
+      inputLine <- lift $ getInputLine "ready> "
       case inputLine of
-        Nothing   -> outputStrLn "Goodbye."
+        Nothing   -> lift $ outputStrLn "Goodbye."
         Just line -> do
-          newMod <- processResult mod (parseToplevel sourceName line)
-          makeModuleFromInputLines newMod
+          processResult (parseToplevel sourceName line)
+          interpretInputLines
       where
-        processResult :: Module -> Either ParseError Toplevel
-                         -> Interpreter Module
-        processResult mod (Right toplevel) = do
-          newMod <- liftIO $ codegen mod [toplevel]
+        processResult :: Either ParseError Toplevel -> Interpreter ()
+        processResult (Left err) = liftIO $ print err
+        processResult (Right toplevel) = do
+          oldMod <- get
+          newMod <- liftIO $ codegen oldMod [toplevel]
+          put newMod
           liftIO $ putStrLn =<< assemblyFromModule newMod
           when (isExpr toplevel) $ do
             result <- liftIO $ eval newMod
-            outputStrLn ("Evaluated to: " ++ result)
-          return newMod
-        processResult mod (Left err) = do
-          liftIO $ print err
-          return mod
-
-initModule :: Module
-initModule = emptyModule "Jack Interpreter"
+            lift $ outputStrLn ("Evaluated to: " ++ result)
 
 sourceName :: String
 sourceName = "<stdin>"
