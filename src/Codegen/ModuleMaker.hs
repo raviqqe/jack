@@ -40,9 +40,9 @@ define retType functionName args body = addDefinition $
   }
 
 declare :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
-declare retType label args = addDefinition $
+declare retType functionName args = addDefinition $
   GlobalDefinition $ functionDefaults {
-    name = Name label,
+    name = Name functionName,
     parameters = ([Parameter argType name [] | (argType, name) <- args],
                   False),
     returnType = retType,
