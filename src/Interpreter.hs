@@ -8,6 +8,8 @@ import qualified LLVM.General.AST as AST
 
 import Parser
 import Codegen
+import Interpreter.JIT
+import Util
 
 
 
@@ -40,9 +42,12 @@ interpret = runInterpreter (makeModuleFromInputLines initModule)
       Nothing   -> outputStrLn "Goodbye."
       Just line -> do
         maybeMod <- liftIO $ incorporateToplevels mod line
-        makeModuleFromInputLines (case maybeMod of
-          Just newMod -> newMod
-          Nothing -> mod)
+        case maybeMod of
+          Just newMod -> do
+            -- putStrLn =<< moduleLLVMAssembly mod
+            liftIO $ printMessage =<< runJIT newMod
+            makeModuleFromInputLines newMod
+          Nothing -> makeModuleFromInputLines mod
 
 incorporateToplevels :: AST.Module -> String -> IO (Maybe AST.Module)
 incorporateToplevels astMod sourceCode

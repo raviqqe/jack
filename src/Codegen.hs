@@ -23,6 +23,7 @@ import Codegen.Instruction
 import Codegen.Pass
 import Codegen.Type
 import qualified Syntax as S
+import Util
 
 
 
@@ -86,9 +87,6 @@ codegenExpr (S.Call functionName args) = do
 
 -- Compilation
 
-liftExceptT :: ExceptT String IO a -> IO a
-liftExceptT = runExceptT >=> either fail return
-
 codegen :: AST.Module -> [Either S.Expr S.Stmt] -> IO AST.Module
 codegen astMod toplevels = withContext $ \context -> do
   let newAstMod = runModuleMaker astMod $ mapM codegenToplevel toplevels
@@ -97,8 +95,7 @@ codegen astMod toplevels = withContext $ \context -> do
       liftExceptT $ verify mod
       ok <- runPassManager passManager mod
       unless ok $ fail "Pass manager failed."
-      putStrLn =<< moduleLLVMAssembly mod
-      return =<< moduleAST mod
+      moduleAST mod
 
 -- Name
 
