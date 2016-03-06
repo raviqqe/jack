@@ -29,9 +29,20 @@ addDefinition definition = do
   definitions <- gets moduleDefinitions
   modify $ \s -> s { moduleDefinitions = definitions ++ [definition] }
 
+deleteDefinition :: String -> ModuleMaker ()
+deleteDefinition funcName = do
+  definitions <- gets moduleDefinitions
+  modify $ \s -> s { moduleDefinitions = filter haveSameName definitions }
+  where
+    haveSameName :: Definition -> Bool
+    haveSameName (GlobalDefinition (Function _ _ _ _ _ _ name _ _ _ _ _ _ _ _))
+      | name == Name funcName = False
+    haveSameName _ = True
+
 define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> ModuleMaker ()
-define retType funcName args body = addDefinition $
-  GlobalDefinition $ functionDefaults {
+define retType funcName args body = do
+  deleteDefinition funcName
+  addDefinition $ GlobalDefinition $ functionDefaults {
     name = Name funcName,
     parameters = ([Parameter argType name [] | (argType, name) <- args],
                   False),
@@ -40,8 +51,9 @@ define retType funcName args body = addDefinition $
   }
 
 declare :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
-declare retType funcName args = addDefinition $
-  GlobalDefinition $ functionDefaults {
+declare retType funcName args = do
+  deleteDefinition funcName
+  addDefinition $ GlobalDefinition $ functionDefaults {
     name = Name funcName,
     parameters = ([Parameter argType name [] | (argType, name) <- args],
                   False),
