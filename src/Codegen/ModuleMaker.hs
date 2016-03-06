@@ -30,9 +30,9 @@ addDefinition definition = do
   modify $ \s -> s { moduleDefinitions = definitions ++ [definition] }
 
 define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> ModuleMaker ()
-define retType functionName args body = addDefinition $
+define retType funcName args body = addDefinition $
   GlobalDefinition $ functionDefaults {
-    name = Name functionName,
+    name = Name funcName,
     parameters = ([Parameter argType name [] | (argType, name) <- args],
                   False),
     returnType = retType,
@@ -40,9 +40,9 @@ define retType functionName args body = addDefinition $
   }
 
 declare :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
-declare retType functionName args = addDefinition $
+declare retType funcName args = addDefinition $
   GlobalDefinition $ functionDefaults {
-    name = Name functionName,
+    name = Name funcName,
     parameters = ([Parameter argType name [] | (argType, name) <- args],
                   False),
     returnType = retType,
