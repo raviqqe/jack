@@ -21,8 +21,9 @@ import Codegen.FuncMaker
 import Codegen.Instruction
 import Codegen.Pass
 import Codegen.Type
-import qualified Syntax as S
+import Constant
 import Util
+import qualified Syntax as S
 
 
 
@@ -51,7 +52,8 @@ codegenToplevel (Right (S.Function name argNames body)) = do
 codegenToplevel (Right (S.Extern name argNames)) = declare double name args
   where
     args = toSignatures argNames
-codegenToplevel (Left expression) = define double "main" [] blocks
+codegenToplevel (Left expression)
+  = define double toplevelExprFuncName [] blocks
   where
     blocks = blocksInFunc $ ret =<< codegenExpr expression
 

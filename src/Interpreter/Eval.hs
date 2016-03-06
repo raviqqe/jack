@@ -8,6 +8,7 @@ import LLVM.General.AST
 import LLVM.General.ExecutionEngine
 import qualified LLVM.General.Module as M
 
+import Constant
 import Util
 
 
@@ -36,12 +37,10 @@ withExecMod mod runExecMod = do
 eval :: Module -> IO String
 eval mod = do
   withExecMod mod $ \execMod -> do
-    mainFuncPtr <- getFunction execMod (Name evaluatedFuncName)
+    mainFuncPtr <- getFunction execMod (Name toplevelExprFuncName)
     case mainFuncPtr of
       Just funcPtr -> do
         result <- callFuncPtr funcPtr
         return (show result)
-      Nothing -> fail ("The function, \"" ++ evaluatedFuncName
+      Nothing -> fail ("The function, \"" ++ toplevelExprFuncName
                        ++ "\" to be evaluated was not found.")
-  where
-    evaluatedFuncName = "main"
