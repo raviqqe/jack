@@ -33,9 +33,8 @@ codegen mod toplevels = withContext $ \context -> do
   liftExceptT $ M.withModuleFromAST context newMod $ \modObj -> do
     withPassManager passes $ \passManager -> do
       liftExceptT $ verify modObj
-      -- Don't optimize modules to keep declarations
-      --ok <- runPassManager passManager modObj
-      --unless ok $ fail "Pass manager failed."
+      ok <- runPassManager passManager modObj
+      unless ok $ fail "Pass manager failed."
       M.moduleAST modObj
 
 codegenToplevel :: Either S.Expr S.Stmt -> ModuleMaker ()
