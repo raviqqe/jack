@@ -30,8 +30,8 @@ toplevelExpr :: Parser Expr
 toplevelExpr = withPos expr
 
 toplevel :: Parser Toplevel
-toplevel = try (toplevelExpr >>= (return . Left))
-           <|> (statement    >>= (return . Right))
+toplevel = try (statement    >>= (return . Right))
+           <|> (toplevelExpr >>= (return . Left))
 
 parseToplevel :: String -> String -> Either ParseError Toplevel
 parseToplevel sourceName sourceCode

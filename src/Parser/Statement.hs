@@ -17,10 +17,11 @@ statement = try extern <|> function
   where
     function :: Parser Stmt
     function = withPos $ do
-      reserved "def"
-      return Function <+/> identifier <+/> (parens $ many identifier) <+/> expr
+      return Function <+/> identifier
+                      <+/> many identifier
+                      <+/> withPos (reservedOp "=" >> sameOrIndented >> expr)
 
     extern :: Parser Stmt
     extern = withPos $ do
-      reserved "extern"
-      return Extern <+/> identifier <+/> (parens $ many identifier)
+      reserved "import"
+      return Extern <+/> identifier <+/> many (sameOrIndented >> identifier)
