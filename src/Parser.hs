@@ -12,22 +12,12 @@ import Text.Parsec.Indent
 
 import Parser.Expression
 import Parser.Indent
-import Parser.Lexer
+import Parser.Statement
 import Syntax
 
 
 
 type Toplevel = Either Expr Stmt
-
-function :: Parser Stmt
-function = withPos $ do
-  reserved "def"
-  return Function <+/> identifier <+/> (parens $ many identifier) <+/> expr
-
-extern :: Parser Stmt
-extern = withPos $ do
-  reserved "extern"
-  return Extern <+/> identifier <+/> (parens $ many identifier)
 
 contents :: Parser a -> Parser a
 contents parser = do
@@ -35,9 +25,6 @@ contents parser = do
   c <- parser
   eof
   return c
-
-statement :: Parser Stmt
-statement = try extern <|> function
 
 toplevelExpr :: Parser Expr
 toplevelExpr = withPos expr
