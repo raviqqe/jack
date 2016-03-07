@@ -9,7 +9,7 @@ import Text.Parsec.Indent
 import qualified Text.Parsec.Expr as Ex
 
 import Parser.Indent
-import Parser.Lexer
+import qualified Parser.Lexer as L
 import Syntax
 
 
@@ -18,11 +18,11 @@ expr :: Parser Expr
 expr = Ex.buildExpressionParser operatorTable exprWithoutOps
   where
     exprWithoutOps :: Parser Expr
-    exprWithoutOps = sameOrIndented >> (try floating
-                                    <|> try int
+    exprWithoutOps = sameOrIndented >> (try float
+                                    <|> try integer
                                     <|> try call
                                     <|> try variable
-                                    <|> parens expr)
+                                    <|> L.parens expr)
     operatorTable :: [[Ex.Operator String () (State SourcePos) Expr]]
     operatorTable = [
         [binary "*" Ex.AssocLeft,
@@ -35,17 +35,17 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
                   -> Ex.Operator String () (State SourcePos) Expr
         binary name = Ex.Infix $ do
           sameOrIndented
-          reservedOp name
+          L.reservedOp name
           return (BinaryOp name)
 
-int :: Parser Expr
-int = Float <$> (fromInteger <$> integer)
+integer :: Parser Expr
+integer = Float <$> (fromInteger <$> L.integer)
 
-floating :: Parser Expr
-floating = Float <$> float
+float :: Parser Expr
+float = Float <$> L.float
 
 variable :: Parser Expr
-variable = Var <$> identifier
+variable = Var <$> L.identifier
 
 call :: Parser Expr
-call = Call <$> identifier <*> (parens $ commaSep expr)
+call = Call <$> L.identifier <*> (L.parens $ L.commaSep expr)
