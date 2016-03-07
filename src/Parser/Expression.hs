@@ -39,9 +39,7 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
           return (BinaryOp name)
 
 int :: Parser Expr
-int = do
-  n <- integer
-  return $ Float (fromInteger n)
+int = Float <$> (fromInteger <$> integer)
 
 floating :: Parser Expr
 floating = (return . Float) =<< float
