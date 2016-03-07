@@ -3,7 +3,7 @@ module Parser.Expression (
 ) where
 
 import Control.Monad.State
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 import Text.Parsec hiding (parse, State)
 import Text.Parsec.Indent
 import qualified Text.Parsec.Expr as Ex
@@ -42,13 +42,10 @@ int :: Parser Expr
 int = Float <$> (fromInteger <$> integer)
 
 floating :: Parser Expr
-floating = (return . Float) =<< float
+floating = Float <$> float
 
 variable :: Parser Expr
 variable = Var <$> identifier
 
 call :: Parser Expr
-call = do
-  name <- identifier
-  args <- parens $ commaSep expr
-  return $ Call name args
+call = Call <$> identifier <*> (parens $ commaSep expr)
