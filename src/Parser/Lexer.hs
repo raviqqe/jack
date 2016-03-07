@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Parser.Lexer (
   integer,
   float,
@@ -9,19 +11,16 @@ module Parser.Lexer (
   reservedOp
 )where
 
-import Text.Parsec.String (Parser)
-import Text.Parsec.Language (emptyDef)
+import Text.Parsec hiding (parse, State)
 import qualified Text.Parsec.Token as Tok
 
+import Parser.Indent
+import Parser.LanguageDef
 
-lexer :: Tok.TokenParser ()
-lexer = Tok.makeTokenParser style
-  where
-    style = emptyDef {
-              Tok.commentLine = "#",
-              Tok.reservedOpNames = ["+", "*", "-", "/", ";"],
-              Tok.reservedNames = ["def", "extern"]
-            }
+
+
+lexer :: Stream s m Char => Tok.GenTokenParser s u m
+lexer = Tok.makeTokenParser languageDef
 
 integer :: Parser Integer
 integer = Tok.integer lexer

@@ -30,6 +30,7 @@ executable jack
     , transformers         >= 0.3.0.0 && < 0.5
     , containers           >= 0.4
     , optparse-applicative
+    , indents
   hs-source-dirs: src
   ghc-options: -Wall -fno-warn-name-shadowing
 

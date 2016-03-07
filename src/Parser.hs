@@ -7,12 +7,12 @@ module Parser (
   isExpr
 ) where
 
+import Control.Monad.State
 import Control.Applicative ((<$>))
-import Data.Functor.Identity
-import Text.Parsec
-import Text.Parsec.String (Parser)
+import Text.Parsec hiding (parse, State)
 import qualified Text.Parsec.Expr as Ex
 
+import Parser.Indent
 import Parser.Lexer
 import Syntax
 
@@ -24,7 +24,7 @@ type Toplevel = Either Expr Stmt
 
 -- functions
 
-binOps :: [[Ex.Operator String () Data.Functor.Identity.Identity Expr]]
+binOps :: [[Ex.Operator String () (State SourcePos) Expr]]
 binOps = [[binary "*" Ex.AssocLeft,
             binary "/" Ex.AssocLeft],
            [binary "+" Ex.AssocLeft,
