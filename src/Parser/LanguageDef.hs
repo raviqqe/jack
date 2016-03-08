@@ -19,8 +19,9 @@ languageDef = LanguageDef {
     identLetter = alphaNum <|> char '_',
     opStart = opChar,
     opLetter = opChar,
-    reservedNames = ["import", "if", "then", "else", "for"],
-    reservedOpNames = ["+", "*", "-", "/", "="],
+    reservedNames = ["import", "if", "then", "else", "for", "True", "False"],
+    reservedOpNames = ["+", "*", "-", "/", "=", "<", ">", "=<", ">=", ",", ".",
+                       "->"],
     caseSensitive = True
   }
   where
