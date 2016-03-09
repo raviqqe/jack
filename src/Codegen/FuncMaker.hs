@@ -123,16 +123,16 @@ addBlock name = do
 setBlock :: Name -> FuncMaker ()
 setBlock name = modify $ \s -> s { currentBlockName = Just name }
 
-getBlock :: FuncMaker BlockState
-getBlock = do
-  name <- getBlockName
+getBlockState :: FuncMaker BlockState
+getBlockState = do
+  name <- getBlock
   blocks <- gets functionBlocks
   case Map.lookup name blocks of
     Just x -> return x
     Nothing -> error $ "No such block: " ++ show name
 
-getBlockName :: FuncMaker Name
-getBlockName = do
+getBlock :: FuncMaker Name
+getBlock = do
   maybeName <- gets currentBlockName
   return (case maybeName of
     Just name -> name
@@ -140,18 +140,18 @@ getBlockName = do
 
 modifyBlock :: BlockState -> FuncMaker ()
 modifyBlock newBlock = do
-  name <- getBlockName
+  name <- getBlock
   modify $ \s -> s { functionBlocks = Map.insert name newBlock
                                                  (functionBlocks s) }
 
 appendInstruction :: Named Instruction -> FuncMaker ()
 appendInstruction instruction = do
-  block <- getBlock
+  block <- getBlockState
   modifyBlock $ block { instructions = instructions block ++ [instruction] }
 
 setTerminator :: Named Terminator -> FuncMaker ()
 setTerminator arnold = do
-  block <- getBlock
+  block <- getBlockState
   modifyBlock $ block { blockTerminator = Just arnold }
 
 
