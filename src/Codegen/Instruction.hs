@@ -15,6 +15,7 @@ module Codegen.Instruction (
   br,
   condbr,
   ret,
+  phi,
 
   localRef,
   globalRef
@@ -100,6 +101,9 @@ condbr cond whenTrue whenFalse
 
 ret :: Operand -> FuncMaker (Named Terminator)
 ret value = terminator $ Do $ Ret (Just value) []
+
+phi :: Type -> [(Operand, Name)] -> FuncMaker Operand
+phi typ valueBlockPairs = instruction $ Phi typ valueBlockPairs []
 
 
 -- References
