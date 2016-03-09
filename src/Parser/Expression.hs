@@ -20,6 +20,7 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
     exprWithoutOps :: Parser Expr
     exprWithoutOps = sameOrIndented >> (try float
                                     <|> try integer
+                                    <|> try ifThenElse
                                     <|> try call
                                     <|> try variable
                                     <|> L.parens expr)
@@ -49,3 +50,9 @@ variable = Var <$> L.identifier
 
 call :: Parser Expr
 call = Call <$> L.identifier <*> (L.parens $ L.commaSep expr)
+
+ifThenElse :: Parser Expr
+ifThenElse = return If
+        <-/> L.reserved "if" <+/> expr
+        <-/> L.reserved "then" <+/> expr
+        <-/> L.reserved "else" <+/> expr
