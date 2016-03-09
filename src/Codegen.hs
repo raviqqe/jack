@@ -86,13 +86,15 @@ codegenExpr (S.If cond exprIfTrue exprIfFalse) = do
   setBlock thenBlock
   valueIfTrue <- codegenExpr exprIfTrue
   br exitIfBlock
+  newThenBlock <- getBlock
 
   setBlock elseBlock
   valueIfFalse <- codegenExpr exprIfFalse
   br exitIfBlock
+  newElseBlock <- getBlock
 
   setBlock exitIfBlock
-  phi double [(valueIfTrue, thenBlock), (valueIfFalse, elseBlock)]
+  phi double [(valueIfTrue, newThenBlock), (valueIfFalse, newElseBlock)]
 codegenExpr (S.Boolean True) = return true
 codegenExpr (S.Boolean False) = return false
 
