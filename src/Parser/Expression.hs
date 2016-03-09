@@ -20,6 +20,7 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
     exprWithoutOps :: Parser Expr
     exprWithoutOps = sameOrIndented >> (try float
                                     <|> try integer
+                                    <|> try bool
                                     <|> try ifThenElse
                                     <|> try call
                                     <|> try variable
@@ -56,3 +57,11 @@ ifThenElse = return If
         <-/> L.reserved "if" <+/> expr
         <-/> L.reserved "then" <+/> expr
         <-/> L.reserved "else" <+/> expr
+
+bool :: Parser Expr
+bool = true <|> false
+  where
+    true :: Parser Expr
+    true = L.reserved "True" >> return (Boolean True)
+    false :: Parser Expr
+    false = L.reserved "False" >> return (Boolean False)
