@@ -43,10 +43,8 @@ instruction instr = do
 noOpInstruction :: Instruction -> FuncMaker ()
 noOpInstruction instr = appendInstruction (Do instr)
 
-terminator :: Named Terminator -> FuncMaker (Named Terminator)
-terminator arnold = do
-  setTerminator arnold
-  return arnold
+terminator :: Named Terminator -> FuncMaker ()
+terminator arnold = setTerminator arnold
 
 
 -- Arithmetic and constants
@@ -92,14 +90,14 @@ load pointer = instruction $ Load False pointer Nothing 0 []
 
 -- Control flow
 
-br :: Name -> FuncMaker (Named Terminator)
+br :: Name -> FuncMaker ()
 br value = terminator $ Do $ Br value []
 
-condbr :: Operand -> Name -> Name -> FuncMaker (Named Terminator)
+condbr :: Operand -> Name -> Name -> FuncMaker ()
 condbr cond whenTrue whenFalse
   = terminator $ Do $ CondBr cond whenTrue whenFalse []
 
-ret :: Operand -> FuncMaker (Named Terminator)
+ret :: Operand -> FuncMaker ()
 ret value = terminator $ Do $ Ret (Just value) []
 
 phi :: Type -> [(Operand, Name)] -> FuncMaker Operand
