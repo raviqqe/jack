@@ -8,7 +8,7 @@ import Text.Parsec hiding (parse, State)
 import Text.Parsec.Indent
 import qualified Text.Parsec.Expr as Ex
 
-import Parser.Indent
+import Parser.Parser
 import qualified Parser.Lexer as L
 import Syntax
 

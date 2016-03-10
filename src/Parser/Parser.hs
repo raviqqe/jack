@@ -1,4 +1,4 @@
-module Parser.Indent (
+module Parser.Parser (
   parse,
   Parser
 ) where

@@ -11,7 +11,7 @@ import Text.Parsec hiding (parse, State)
 import Text.Parsec.Indent
 
 import Parser.Expression
-import Parser.Indent
+import Parser.Parser
 import Parser.Statement
 import Syntax
 
