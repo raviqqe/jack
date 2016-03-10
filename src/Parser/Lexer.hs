@@ -14,7 +14,7 @@ module Parser.Lexer (
 import Text.Parsec hiding (parse, State)
 import qualified Text.Parsec.Token as Tok
 
-import Parser.Indent
+import Parser.Parser
 import Parser.LanguageDef
 
 
