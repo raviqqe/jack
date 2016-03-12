@@ -6,7 +6,6 @@ module Codegen (
 ) where
 
 import Control.Monad.Except
-import qualified Data.Map as Map
 import LLVM.General.Analysis
 import LLVM.General.Context
 import LLVM.General.PassManager
@@ -58,20 +57,6 @@ codegenToplevel (Left expression)
     blocks = blocksInFunc $ ret =<< codegenExpr expression
 
 codegenExpr :: S.Expr -> FuncMaker Operand
-codegenExpr (S.UnaryOp operatorName arg) = do
-  codegenExpr $ S.Call ("unary" ++ operatorName) [arg]
-codegenExpr (S.BinaryOp "=" (S.Var varName) expression) = do
-  var <- referToSymbol varName
-  value <- codegenExpr expression
-  store var value
-  return value
-codegenExpr (S.BinaryOp operator a b) = do
-  case Map.lookup operator binOpInstr of
-    Just instruction -> do
-      ca <- codegenExpr a
-      cb <- codegenExpr b
-      instruction ca cb
-    Nothing -> error "No such operator"
 codegenExpr (S.Var varName) = load =<< referToSymbol varName
 codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.Call functionName args) = do
@@ -106,18 +91,6 @@ false = constant $ C.Float (F.Double 0.0)
 
 toSignatures :: [String] -> [(Type, Name)]
 toSignatures = map (\name -> (double, Name name))
-
-binOpInstr :: Map.Map String (Operand -> Operand -> FuncMaker Operand)
-binOpInstr = Map.fromList [
-    ("+", fadd),
-    ("-", fsub),
-    ("*", fmul),
-    ("/", fdiv),
-    ("<", lt)
-  ]
-  where
-    lt :: Operand -> Operand -> FuncMaker Operand
-    lt a b = uitofp =<< fcmp FP.ULT a b
 
 assemblyFromModule :: Module -> IO String
 assemblyFromModule mod = do
