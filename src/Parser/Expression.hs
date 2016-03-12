@@ -27,18 +27,38 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
                                     <|> L.parens expr)
     operatorTable :: [[Ex.Operator String () (State SourcePos) Expr]]
     operatorTable = [
-        [binary "*" Ex.AssocLeft,
-         binary "/" Ex.AssocLeft],
-        [binary "+" Ex.AssocLeft,
-         binary "-" Ex.AssocLeft]
+        [reservedUnaryOp "-"],
+        [reservedBinOp "*",
+         reservedBinOp "/"],
+        [reservedBinOp "+",
+         reservedBinOp "-"],
+        [userDefinedBinOp]
       ]
       where
-        binary :: String -> Ex.Assoc
-                  -> Ex.Operator String () (State SourcePos) Expr
-        binary name = Ex.Infix $ do
-          sameOrIndented
-          L.reservedOp name
-          return (BinaryOp name)
+        reservedUnaryOp :: String
+                           -> Ex.Operator String () (State SourcePos) Expr
+        reservedUnaryOp name
+          = Ex.Prefix $ try $ do
+            sameOrIndented
+            L.reservedOp name
+            return (\expr -> Call ("unary." ++ name) [expr])
+
+        reservedBinOp :: String -> Ex.Operator String () (State SourcePos) Expr
+        reservedBinOp name
+          = infixOp $ try $ do
+            sameOrIndented
+            L.reservedOp name
+            return (callBinOpFunc name)
+
+        userDefinedBinOp :: Ex.Operator String () (State SourcePos) Expr
+        userDefinedBinOp
+          = infixOp $ try $ do
+            sameOrIndented
+            callBinOpFunc <$> L.operator
+
+        infixOp parser = Ex.Infix parser Ex.AssocLeft
+        callBinOpFunc opName expr1 expr2
+          = Call ("binary." ++ opName) [expr1, expr2]
 
 integer :: Parser Expr
 integer = Float <$> (fromInteger <$> L.integer)
