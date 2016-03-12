@@ -1,7 +1,7 @@
 module Codegen (
   Module,
   codegen,
-  emptyModule,
+  initialModule,
   assemblyFromModule
 ) where
 
@@ -18,6 +18,7 @@ import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
 import Codegen.ModuleMaker
 import Codegen.FuncMaker
+import Codegen.InitialModule
 import Codegen.Instruction
 import Codegen.Pass
 import Codegen.Type

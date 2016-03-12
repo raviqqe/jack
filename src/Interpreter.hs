@@ -19,7 +19,7 @@ type Interpreter = StateT Module (InputT IO)
 runInterpreter :: Interpreter () -> IO ()
 runInterpreter interpreter
   = runInputT defaultSettings
-              (evalStateT interpreter (emptyModule "Jack Interpreter"))
+              (evalStateT interpreter (initialModule "Jack Interpreter"))
 
 interpret :: IO ()
 interpret = runInterpreter interpretInputLines

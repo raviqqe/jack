@@ -3,7 +3,6 @@
 module Codegen.ModuleMaker (
   ModuleMaker,
   runModuleMaker,
-  emptyModule,
   define,
   declare
 ) where
@@ -20,9 +19,6 @@ newtype ModuleMaker a = ModuleMaker { unModuleMaker :: State Module a }
 
 runModuleMaker :: Module -> ModuleMaker a -> Module
 runModuleMaker = flip (execState . unModuleMaker)
-
-emptyModule :: String -> Module
-emptyModule name = defaultModule { moduleName = name }
 
 addDefinition :: Definition -> ModuleMaker ()
 addDefinition definition = do
