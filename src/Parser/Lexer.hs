@@ -7,6 +7,7 @@ module Parser.Lexer (
   commaSep,
   semiSep,
   identifier,
+  operator,
   reserved,
   reservedOp
 )where
@@ -45,3 +46,6 @@ reserved = Tok.reserved lexer
 
 reservedOp :: String -> Parser ()
 reservedOp = Tok.reservedOp lexer
+
+operator :: Parser String
+operator = Tok.operator lexer
