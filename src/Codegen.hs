@@ -5,7 +5,6 @@ module Codegen (
   assemblyFromModule
 ) where
 
-import Control.Monad.Except
 import LLVM.General.Analysis
 import LLVM.General.Context
 import LLVM.General.PassManager
@@ -42,12 +41,7 @@ codegenToplevel (Right (S.STermDef name argNames body)) = do
   define double name args blocks
   where
     args = toSignatures argNames
-    blocks = blocksInFunc $ do
-      forM_ argNames $ \argName -> do
-        pointer <- alloca double
-        store (localRef (Name argName)) pointer
-        setSymbol argName pointer
-      ret =<< codegenExpr body
+    blocks = blocksInFunc $ ret =<< codegenExpr body
 codegenToplevel (Right (S.SImport name argNames)) = declare double name args
   where
     args = toSignatures argNames
@@ -57,7 +51,7 @@ codegenToplevel (Left expression)
     blocks = blocksInFunc $ ret =<< codegenExpr expression
 
 codegenExpr :: S.Expr -> FuncMaker Operand
-codegenExpr (S.EVar varName) = load =<< referToSymbol varName
+codegenExpr (S.EVar varName) = return $ localRef (Name varName)
 codegenExpr (S.ENum num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.ECall functionName args) = do
   call (globalRef (Name functionName)) =<< mapM codegenExpr args

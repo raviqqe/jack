@@ -10,9 +10,6 @@ module Codegen.FuncMaker (
   addBlock,
   appendInstruction,
   setTerminator,
-
-  setSymbol,
-  referToSymbol,
 ) where
 
 import Control.Monad.State
@@ -29,14 +26,11 @@ import qualified NameSupply as NS
 
 -- FuncMaker state
 
-type SymbolTable = Map.Map String Operand
-
 data FuncMakerState =
   FuncMakerState {
     currentBlockName  :: Maybe Name,
       -- Name of the active block to append instructions to
     functionBlocks    :: Map.Map Name BlockState,
-    symbolTable       :: SymbolTable, -- Symbol table of function scope
     anonInstrIndex    :: Word,
     blockNames        :: NS.NameSupply
   } deriving Show
@@ -74,7 +68,6 @@ emptyFuncMaker =
   FuncMakerState {
     currentBlockName  = Nothing,
     functionBlocks    = Map.empty,
-    symbolTable       = Map.empty,
     anonInstrIndex    = 0,
     blockNames        = NS.empty
   }
@@ -153,19 +146,3 @@ setTerminator :: Named Terminator -> FuncMaker ()
 setTerminator arnold = do
   block <- getBlockState
   modifyBlock $ block { blockTerminator = Just arnold }
-
-
-
--- Symbol Table
-
-setSymbol :: String -> Operand -> FuncMaker ()
-setSymbol symbol value = do
-  symbols <- gets symbolTable
-  modify $ \s -> s { symbolTable = Map.insert symbol value symbols }
-
-referToSymbol :: String -> FuncMaker Operand
-referToSymbol symbol = do
-  symbols <- gets symbolTable
-  case Map.lookup symbol symbols of
-    Just x -> return x
-    Nothing -> error $ "Local symbol not in scope: " ++ symbol
