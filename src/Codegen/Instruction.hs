@@ -11,6 +11,8 @@ module Codegen.Instruction (
   alloca,
   store,
   load,
+  malloc,
+  free,
 
   br,
   condbr,
@@ -21,7 +23,9 @@ module Codegen.Instruction (
   globalRef
 ) where
 
+import qualified Control.Monad as M
 import LLVM.General.AST
+import qualified LLVM.General.AST.AddrSpace as AS
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.CallingConvention as CC
 import qualified LLVM.General.AST.Attribute as A
@@ -88,6 +92,32 @@ store value pointer = noOpInstruction $ Store False pointer value Nothing 0 []
 
 load :: Operand -> FuncMaker Operand
 load pointer = instruction $ Load False pointer Nothing 0 []
+
+malloc :: Type -> FuncMaker Operand
+malloc typ = do
+  size <- sizeof typ
+  call (globalRef (Name "malloc")) [size]
+
+free :: Operand -> FuncMaker ()
+free pointer = M.void $ call (globalRef (Name "free")) [pointer]
+
+sizeof :: Type -> FuncMaker Operand
+sizeof typ = do
+  pointer <- getelementptr nullPointer [one]
+  ptrtoint pointer
+  where
+    nullPointer = constant $ C.Null $ PointerType typ (AS.AddrSpace 0)
+    one = constant (C.Int 32 1)
+
+getelementptr :: Operand -> [Operand] -> FuncMaker Operand
+getelementptr basePointer indices
+  = instruction $ GetElementPtr False basePointer indices []
+
+
+-- Conversion
+
+ptrtoint :: Operand -> FuncMaker Operand
+ptrtoint pointer = instruction $ PtrToInt pointer i64 []
 
 
 -- Control flow
