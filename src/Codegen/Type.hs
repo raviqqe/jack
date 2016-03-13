@@ -1,10 +1,9 @@
 module Codegen.Type (
-  double
+  double,
+  ptr,
+  void,
+  i1,
+  i64
 ) where
 
-import LLVM.General.AST
-
-
-
-double :: Type -- IEEE 754
-double = FloatingPointType 64 IEEE
+import LLVM.General.AST.Type
