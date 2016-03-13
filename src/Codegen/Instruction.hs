@@ -38,7 +38,7 @@ instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
   resultName <- getNewAnonName
   appendInstruction (resultName := instr)
-  return $ localRef double resultName
+  return $ localRef resultName
 
 noOpInstruction :: Instruction -> FuncMaker ()
 noOpInstruction instr = appendInstruction (Do instr)
@@ -68,7 +68,8 @@ constant :: C.Constant -> Operand
 constant = ConstantOperand
 
 uitofp :: Operand -> FuncMaker Operand
-uitofp a = instruction $ UIToFP a double []
+uitofp unsignedInt = instruction $ UIToFP unsignedInt double []
+
 
 -- Effects
 
@@ -83,10 +84,11 @@ alloca :: Type -> FuncMaker Operand
 alloca typ = instruction $ Alloca typ Nothing 0 []
 
 store :: Operand -> Operand -> FuncMaker ()
-store pointer value = noOpInstruction $ Store False pointer value Nothing 0 []
+store value pointer = noOpInstruction $ Store False pointer value Nothing 0 []
 
 load :: Operand -> FuncMaker Operand
 load pointer = instruction $ Load False pointer Nothing 0 []
+
 
 -- Control flow
 
@@ -106,8 +108,14 @@ phi typ valueBlockPairs = instruction $ Phi typ valueBlockPairs []
 
 -- References
 
-localRef :: Type -> Name -> Operand
-localRef = LocalReference
+-- HACK
+-- `Type` fields of `LocalReference` and `GlobalReference` are not used
+-- because they are not used in LLVM.General library and inconvenient
+-- for us to use as there is no common way to extract types from `Operand`
+-- data including `Constant`.
 
-globalRef :: Type -> Name -> Operand
-globalRef typ = ConstantOperand . C.GlobalReference typ
+localRef :: Name -> Operand
+localRef = LocalReference void -- HACK
+
+globalRef :: Name -> Operand
+globalRef = ConstantOperand . C.GlobalReference void -- HACK

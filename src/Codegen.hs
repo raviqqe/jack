@@ -44,9 +44,9 @@ codegenToplevel (Right (S.STermDef name argNames body)) = do
     args = toSignatures argNames
     blocks = blocksInFunc $ do
       forM_ argNames $ \argName -> do
-        var <- alloca double
-        store var (localRef double (Name argName))
-        setSymbol argName var
+        pointer <- alloca double
+        store (localRef (Name argName)) pointer
+        setSymbol argName pointer
       ret =<< codegenExpr body
 codegenToplevel (Right (S.SImport name argNames)) = declare double name args
   where
@@ -60,7 +60,7 @@ codegenExpr :: S.Expr -> FuncMaker Operand
 codegenExpr (S.EVar varName) = load =<< referToSymbol varName
 codegenExpr (S.ENum num) = (return . constant . C.Float . F.Double) num
 codegenExpr (S.ECall functionName args) = do
-  call (globalRef double (Name functionName)) =<< mapM codegenExpr args
+  call (globalRef (Name functionName)) =<< mapM codegenExpr args
 codegenExpr (S.EIf cond exprIfTrue exprIfFalse) = do
   thenBlock <- addBlock "if.then"
   elseBlock <- addBlock "if.else"
