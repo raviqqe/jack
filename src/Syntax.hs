@@ -3,13 +3,13 @@ module Syntax where
 
 type Name = String
 
-data Stmt = Function Name [Name] Expr
-          | Extern Name [Name]
-          deriving (Eq, Ord, Show)
+data Statement = STermDef Name [Name] Expr
+               | SImport Name [Name]
+               deriving (Eq, Ord, Show)
 
-data Expr = Float Double
-          | Boolean Bool
-          | Var Name
-          | Call Name [Expr]
-          | If Expr Expr Expr
+data Expr = ENum Double
+          | EBool Bool
+          | EVar Name
+          | ECall Name [Expr]
+          | EIf Expr Expr Expr
           deriving (Eq, Ord, Show)

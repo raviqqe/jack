@@ -27,7 +27,7 @@ import qualified Syntax as S
 
 
 
-codegen :: Module -> [Either S.Expr S.Stmt] -> IO Module
+codegen :: Module -> [Either S.Expr S.Statement] -> IO Module
 codegen mod toplevels = withContext $ \context -> do
   let newMod = runModuleMaker mod $ mapM codegenToplevel toplevels
   liftExceptT $ M.withModuleFromAST context newMod $ \modObj -> do
@@ -37,8 +37,8 @@ codegen mod toplevels = withContext $ \context -> do
       liftExceptT $ verify modObj
       M.moduleAST modObj
 
-codegenToplevel :: Either S.Expr S.Stmt -> ModuleMaker ()
-codegenToplevel (Right (S.Function name argNames body)) = do
+codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
+codegenToplevel (Right (S.STermDef name argNames body)) = do
   define double name args blocks
   where
     args = toSignatures argNames
@@ -48,7 +48,7 @@ codegenToplevel (Right (S.Function name argNames body)) = do
         store var (localRef double (Name argName))
         setSymbol argName var
       ret =<< codegenExpr body
-codegenToplevel (Right (S.Extern name argNames)) = declare double name args
+codegenToplevel (Right (S.SImport name argNames)) = declare double name args
   where
     args = toSignatures argNames
 codegenToplevel (Left expression)
@@ -57,11 +57,11 @@ codegenToplevel (Left expression)
     blocks = blocksInFunc $ ret =<< codegenExpr expression
 
 codegenExpr :: S.Expr -> FuncMaker Operand
-codegenExpr (S.Var varName) = load =<< referToSymbol varName
-codegenExpr (S.Float num) = (return . constant . C.Float . F.Double) num
-codegenExpr (S.Call functionName args) = do
+codegenExpr (S.EVar varName) = load =<< referToSymbol varName
+codegenExpr (S.ENum num) = (return . constant . C.Float . F.Double) num
+codegenExpr (S.ECall functionName args) = do
   call (globalRef double (Name functionName)) =<< mapM codegenExpr args
-codegenExpr (S.If cond exprIfTrue exprIfFalse) = do
+codegenExpr (S.EIf cond exprIfTrue exprIfFalse) = do
   thenBlock <- addBlock "if.then"
   elseBlock <- addBlock "if.else"
   exitIfBlock <- addBlock "if.exit"
@@ -81,8 +81,8 @@ codegenExpr (S.If cond exprIfTrue exprIfFalse) = do
 
   setBlock exitIfBlock
   phi double [(valueIfTrue, newThenBlock), (valueIfFalse, newElseBlock)]
-codegenExpr (S.Boolean True) = return true
-codegenExpr (S.Boolean False) = return false
+codegenExpr (S.EBool True) = return true
+codegenExpr (S.EBool False) = return false
 
 true :: Operand
 true  = constant $ C.Float (F.Double 1.0)

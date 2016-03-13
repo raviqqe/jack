@@ -41,7 +41,7 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
           = Ex.Prefix $ try $ do
             sameOrIndented
             L.reservedOp name
-            return (\expr -> Call ("unary." ++ name) [expr])
+            return (\expr -> ECall ("unary." ++ name) [expr])
 
         reservedBinOp :: String -> Ex.Operator String () (State SourcePos) Expr
         reservedBinOp name
@@ -58,22 +58,22 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
 
         infixOp parser = Ex.Infix parser Ex.AssocLeft
         callBinOpFunc opName expr1 expr2
-          = Call ("binary." ++ opName) [expr1, expr2]
+          = ECall ("binary." ++ opName) [expr1, expr2]
 
 integer :: Parser Expr
-integer = Float <$> (fromInteger <$> L.integer)
+integer = ENum <$> (fromInteger <$> L.integer)
 
 float :: Parser Expr
-float = Float <$> L.float
+float = ENum <$> L.float
 
 variable :: Parser Expr
-variable = Var <$> L.identifier
+variable = EVar <$> L.identifier
 
 call :: Parser Expr
-call = Call <$> L.identifier <*> (L.parens $ L.commaSep expr)
+call = ECall <$> L.identifier <*> (L.parens $ L.commaSep expr)
 
 ifThenElse :: Parser Expr
-ifThenElse = return If
+ifThenElse = return EIf
         <-/> L.reserved "if" <+/> expr
         <-/> L.reserved "then" <+/> expr
         <-/> L.reserved "else" <+/> expr
@@ -82,6 +82,6 @@ bool :: Parser Expr
 bool = true <|> false
   where
     true :: Parser Expr
-    true = L.reserved "True" >> return (Boolean True)
+    true = L.reserved "True" >> return (EBool True)
     false :: Parser Expr
-    false = L.reserved "False" >> return (Boolean False)
+    false = L.reserved "False" >> return (EBool False)

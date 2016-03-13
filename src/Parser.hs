@@ -3,7 +3,7 @@ module Parser (
   ParseError,
   parseToplevel,
   parseToplevels,
-  parseStmts,
+  parseStatements,
   isExpr
 ) where
 
@@ -17,7 +17,7 @@ import Syntax
 
 
 
-type Toplevel = Either Expr Stmt
+type Toplevel = Either Expr Statement
 
 contents :: Parser a -> Parser a
 contents parser = do
@@ -41,8 +41,8 @@ parseToplevels :: String -> String -> Either ParseError [Toplevel]
 parseToplevels sourceName sourceCode
   = parse (contents $ many toplevel) sourceName sourceCode
 
-parseStmts :: String -> String -> Either ParseError [Stmt]
-parseStmts sourceName sourceCode
+parseStatements :: String -> String -> Either ParseError [Statement]
+parseStatements sourceName sourceCode
   = parse (contents $ many statement) sourceName sourceCode
 
 isExpr :: Toplevel -> Bool

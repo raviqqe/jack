@@ -14,27 +14,27 @@ import Syntax
 
 
 
-statement :: Parser Stmt
+statement :: Parser Statement
 statement = try extern <|> function
   where
-    function :: Parser Stmt
+    function :: Parser Statement
     function = withPos $ do
       signature <+/> withPos (reservedOp "=" >> sameOrIndented >> expr)
       where
         signature = try functionSignature
                 <|> try binOpSignature
                 <|> unaryOpSignature
-        functionSignature = return Function
+        functionSignature = return STermDef
                        <+/> identifier
                        <+/> I.many identifier
-        binOpSignature = return Function
+        binOpSignature = return STermDef
                     <+/> (("binary." ++) <$> parens operator)
                     <+/> I.count 2 identifier
-        unaryOpSignature = return Function
+        unaryOpSignature = return STermDef
                       <+/> (("unary." ++) <$> parens operator)
                       <+/> I.count 1 identifier
 
-    extern :: Parser Stmt
+    extern :: Parser Statement
     extern = withPos $ do
       reserved "import"
-      return Extern <+/> identifier <+/> I.many identifier
+      return SImport <+/> identifier <+/> I.many identifier
