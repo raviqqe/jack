@@ -14,6 +14,6 @@ import LLVM.General.Transforms
 passes :: PassSetSpec
 passes = defaultPassSetSpec {
     transforms = [
-      PromoteMemoryToRegister
+      --PromoteMemoryToRegister
     ]
   }
