@@ -16,3 +16,6 @@ initialModule name = runModuleMaker (defaultModule { moduleName = name }) $ do
   declare double "binary.-" [(double, Name "x"), (double, Name "y")]
   declare double "binary.*" [(double, Name "x"), (double, Name "y")]
   declare double "binary./" [(double, Name "x"), (double, Name "y")]
+
+  declare (ptr i8) "malloc" [(i64, Name "x")]
+  declare void "free" [(ptr i8, Name "x")]

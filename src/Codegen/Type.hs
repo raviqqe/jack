@@ -3,6 +3,7 @@ module Codegen.Type (
   ptr,
   void,
   i1,
+  i8,
   i64
 ) where
 
