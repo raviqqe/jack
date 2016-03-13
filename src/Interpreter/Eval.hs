@@ -2,6 +2,7 @@ module Interpreter.Eval (
   eval
 ) where
 
+import Control.Monad.Except
 import Foreign.Ptr ( FunPtr, castFunPtr )
 import LLVM.General.Context
 import LLVM.General.AST
@@ -32,7 +33,17 @@ withExecMod mod runExecMod = do
   withContext $ \context ->
     withMyJIT context $ \executionEngine ->
       liftExceptT $ M.withModuleFromAST context mod $ \modObj -> do
+        linkPreludeLib context modObj
         withModuleInEngine executionEngine modObj runExecMod
+  where
+    linkPreludeLib context modObj = do
+      preludeLibAssembly <- readFile "src/prelude.ll"
+      liftDiagnostics $ M.withModuleFromLLVMAssembly
+          context preludeLibAssembly $ \libModObj -> do
+        liftExceptT $ M.linkModules True modObj libModObj
+      where
+        liftDiagnostics = runExceptT >=> either
+          (either fail (\diagnostics -> fail (show diagnostics))) return
 
 eval :: Module -> IO String
 eval mod = do
