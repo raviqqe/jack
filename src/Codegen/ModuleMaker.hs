@@ -4,7 +4,8 @@ module Codegen.ModuleMaker (
   ModuleMaker,
   runModuleMaker,
   define,
-  declare
+  declare,
+  typeDef
 ) where
 
 import Control.Monad.State
@@ -26,13 +27,15 @@ addDefinition definition = do
   modify $ \s -> s { moduleDefinitions = definitions ++ [definition] }
 
 deleteDefinition :: String -> ModuleMaker ()
-deleteDefinition funcName = do
+deleteDefinition name = do
   definitions <- gets moduleDefinitions
   modify $ \s -> s { moduleDefinitions = filter haveSameName definitions }
   where
     haveSameName :: Definition -> Bool
-    haveSameName (GlobalDefinition (Function _ _ _ _ _ _ name _ _ _ _ _ _ _ _))
-      | name == Name funcName = False
+    haveSameName
+      (GlobalDefinition (Function _ _ _ _ _ _ (Name oldName) _ _ _ _ _ _ _ _))
+      | oldName == name = False
+    haveSameName (TypeDefinition (Name oldName) _) | oldName == name = False
     haveSameName _ = True
 
 define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> ModuleMaker ()
@@ -56,3 +59,8 @@ declare retType funcName args = do
     returnType = retType,
     basicBlocks = []
   }
+
+typeDef :: String -> Type -> ModuleMaker ()
+typeDef name newType = do
+  deleteDefinition name
+  addDefinition $ TypeDefinition (Name name) (Just newType)
