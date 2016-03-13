@@ -7,6 +7,7 @@ import Text.Parsec hiding (parse, State)
 import Text.Parsec.Indent
 
 import Parser.Expression
+import qualified Parser.Indent as I
 import Parser.Lexer
 import Parser.Parser
 import Syntax
@@ -25,15 +26,15 @@ statement = try extern <|> function
                 <|> unaryOpSignature
         functionSignature = return Function
                        <+/> identifier
-                       <+/> many (sameOrIndented >> identifier)
+                       <+/> I.many identifier
         binOpSignature = return Function
                     <+/> (("binary." ++) <$> parens operator)
-                    <+/> count 2 (sameOrIndented >> identifier)
+                    <+/> I.count 2 identifier
         unaryOpSignature = return Function
                       <+/> (("unary." ++) <$> parens operator)
-                      <+/> count 1 (sameOrIndented >> identifier)
+                      <+/> I.count 1 identifier
 
     extern :: Parser Stmt
     extern = withPos $ do
       reserved "import"
-      return Extern <+/> identifier <+/> many (sameOrIndented >> identifier)
+      return Extern <+/> identifier <+/> I.many identifier
