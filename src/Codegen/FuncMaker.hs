@@ -20,7 +20,7 @@ import Data.Word
 import qualified Data.Map as Map
 import LLVM.General.AST
 
-import qualified NameSupply as NS
+import qualified Name.Supply as NS
 
 
 
