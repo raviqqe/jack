@@ -6,6 +6,7 @@ import Control.Applicative ((<$>))
 import Text.Parsec hiding (parse, State)
 import Text.Parsec.Indent
 
+import Name.Mangle
 import Parser.Expression
 import qualified Parser.Indent as I
 import Parser.Lexer
@@ -28,10 +29,10 @@ statement = try extern <|> function
                        <+/> identifier
                        <+/> I.many identifier
         binOpSignature = return STermDef
-                    <+/> (("binary." ++) <$> parens operator)
+                    <+/> (binaryOpFuncName <$> parens operator)
                     <+/> I.count 2 identifier
         unaryOpSignature = return STermDef
-                      <+/> (("unary." ++) <$> parens operator)
+                      <+/> (unaryOpFuncName <$> parens operator)
                       <+/> I.count 1 identifier
 
     extern :: Parser Statement

@@ -8,6 +8,7 @@ import Text.Parsec hiding (parse, State)
 import Text.Parsec.Indent
 import qualified Text.Parsec.Expr as Ex
 
+import Name.Mangle
 import Parser.Parser
 import qualified Parser.Lexer as L
 import Syntax
@@ -41,7 +42,7 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
           = Ex.Prefix $ try $ do
             sameOrIndented
             L.reservedOp name
-            return (\expr -> ECall ("unary." ++ name) [expr])
+            return (\expr -> ECall (unaryOpFuncName name) [expr])
 
         reservedBinOp :: String -> Ex.Operator String () (State SourcePos) Expr
         reservedBinOp name
@@ -58,7 +59,7 @@ expr = Ex.buildExpressionParser operatorTable exprWithoutOps
 
         infixOp parser = Ex.Infix parser Ex.AssocLeft
         callBinOpFunc opName expr1 expr2
-          = ECall ("binary." ++ opName) [expr1, expr2]
+          = ECall (binaryOpFuncName opName) [expr1, expr2]
 
 integer :: Parser Expr
 integer = ENum <$> (fromInteger <$> L.integer)
