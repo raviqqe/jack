@@ -11,11 +11,11 @@ import Codegen.Type
 
 initialModule :: String -> Module
 initialModule name = runModuleMaker (defaultModule { moduleName = name }) $ do
-  declare double "unary.-" [(double, Name "x")]
-  declare double "binary.+" [(double, Name "x"), (double, Name "y")]
-  declare double "binary.-" [(double, Name "x"), (double, Name "y")]
-  declare double "binary.*" [(double, Name "x"), (double, Name "y")]
-  declare double "binary./" [(double, Name "x"), (double, Name "y")]
+  declare float "unary.-" [(float, Name "x")]
+  declare float "binary.+" [(float, Name "x"), (float, Name "y")]
+  declare float "binary.-" [(float, Name "x"), (float, Name "y")]
+  declare float "binary.*" [(float, Name "x"), (float, Name "y")]
+  declare float "binary./" [(float, Name "x"), (float, Name "y")]
 
-  declare (ptr i8) "malloc" [(i64, Name "x")]
-  declare void "free" [(ptr i8, Name "x")]
+  declare (ptr byte) "malloc" [(int, Name "x")]
+  declare void "free" [(ptr byte, Name "x")]

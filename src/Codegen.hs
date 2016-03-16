@@ -38,15 +38,15 @@ codegen mod toplevels = withContext $ \context -> do
 
 codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
 codegenToplevel (Right (S.STermDef name argNames body)) = do
-  define double name args blocks
+  define float name args blocks
   where
     args = toSignatures argNames
     blocks = blocksInFunc $ ret =<< codegenExpr body
-codegenToplevel (Right (S.SImport name argNames)) = declare double name args
+codegenToplevel (Right (S.SImport name argNames)) = declare float name args
   where
     args = toSignatures argNames
 codegenToplevel (Left expression)
-  = define double toplevelExprFuncName [] blocks
+  = define float toplevelExprFuncName [] blocks
   where
     blocks = blocksInFunc $ ret =<< codegenExpr expression
 
@@ -74,7 +74,7 @@ codegenExpr (S.EIf cond exprIfTrue exprIfFalse) = do
   newElseBlock <- getBlock
 
   setBlock exitIfBlock
-  phi double [(valueIfTrue, newThenBlock), (valueIfFalse, newElseBlock)]
+  phi float [(valueIfTrue, newThenBlock), (valueIfFalse, newElseBlock)]
 codegenExpr (S.EBool True) = return true
 codegenExpr (S.EBool False) = return false
 
@@ -84,7 +84,7 @@ false :: Operand
 false = constant $ C.Float (F.Double 0.0)
 
 toSignatures :: [String] -> [(Type, Name)]
-toSignatures = map (\name -> (double, Name name))
+toSignatures = map (\name -> (float, Name name))
 
 assemblyFromModule :: Module -> IO String
 assemblyFromModule mod = do

@@ -25,7 +25,6 @@ module Codegen.Instruction (
 
 import qualified Control.Monad as M
 import LLVM.General.AST
-import qualified LLVM.General.AST.AddrSpace as AS
 import qualified LLVM.General.AST.Constant as C
 import qualified LLVM.General.AST.CallingConvention as CC
 import qualified LLVM.General.AST.Attribute as A
@@ -72,7 +71,7 @@ constant :: C.Constant -> Operand
 constant = ConstantOperand
 
 uitofp :: Operand -> FuncMaker Operand
-uitofp unsignedInt = instruction $ UIToFP unsignedInt double []
+uitofp unsignedInt = instruction $ UIToFP unsignedInt float []
 
 
 -- Effects
@@ -106,7 +105,7 @@ sizeof typ = do
   pointer <- getelementptr nullPointer [one]
   ptrtoint pointer
   where
-    nullPointer = constant $ C.Null $ PointerType typ (AS.AddrSpace 0)
+    nullPointer = constant $ C.Null $ ptr typ
     one = constant (C.Int 32 1)
 
 getelementptr :: Operand -> [Operand] -> FuncMaker Operand
@@ -117,7 +116,7 @@ getelementptr basePointer indices
 -- Conversion
 
 ptrtoint :: Operand -> FuncMaker Operand
-ptrtoint pointer = instruction $ PtrToInt pointer i64 []
+ptrtoint pointer = instruction $ PtrToInt pointer int []
 
 
 -- Control flow
