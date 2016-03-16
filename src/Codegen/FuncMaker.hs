@@ -2,7 +2,7 @@
 
 module Codegen.FuncMaker (
   FuncMaker,
-  getNewAnonName,
+  getNewLocalName,
   blocksInFunc,
 
   setBlock,
@@ -83,8 +83,8 @@ execFuncMaker funcMaker
     entryBlockName :: String
     entryBlockName = "entry"
 
-getNewAnonName :: FuncMaker Name
-getNewAnonName = do
+getNewLocalName :: FuncMaker Name
+getNewLocalName = do
   anonIndex <- nextAnonInstrIndex
   return (UnName anonIndex)
   where

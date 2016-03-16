@@ -40,7 +40,7 @@ import Codegen.Type
 
 instruction :: Instruction -> FuncMaker Operand
 instruction instr = do
-  resultName <- getNewAnonName
+  resultName <- getNewLocalName
   appendInstruction (resultName := instr)
   return $ localRef resultName
 
