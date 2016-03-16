@@ -1,4 +1,4 @@
-module NameSupply (
+module Name.Supply (
   NameSupply,
   uniqueName,
   empty,
