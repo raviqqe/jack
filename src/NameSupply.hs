@@ -8,6 +8,7 @@ module NameSupply (
 import qualified Data.Map as Map
 
 
+
 type NameSupply = Map.Map String Int
 
 empty :: NameSupply
@@ -23,6 +24,5 @@ uniqueName name names =
 insert :: String -> NameSupply -> NameSupply
 insert name names | Map.member name names = names
                   | otherwise             = Map.insert name initialIndex names
-
-initialIndex :: Int
-initialIndex = 0
+  where
+    initialIndex = 0
