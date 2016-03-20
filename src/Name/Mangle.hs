@@ -1,6 +1,7 @@
 module Name.Mangle (
   unaryOpFuncName,
-  binaryOpFuncName
+  binaryOpFuncName,
+  closureEnvName
 ) where
 
 
@@ -10,3 +11,10 @@ unaryOpFuncName = ("unary." ++)
 
 binaryOpFuncName :: String -> String
 binaryOpFuncName = ("binary." ++)
+
+closureEnvName :: String -> String
+closureEnvName funcNameWithTypes
+  = langPrefix ++ funcNameWithTypes ++ ".closure_env"
+
+langPrefix :: String
+langPrefix = "jack."
