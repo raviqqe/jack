@@ -7,7 +7,10 @@ module Codegen.Type (
   ptr,
   struct,
   array,
-  func
+  func,
+
+  argTypes,
+  retType
 ) where
 
 import qualified LLVM.General.AST.Type as T
@@ -37,3 +40,9 @@ array numOfElems typ = T.ArrayType (toEnum numOfElems) typ
 
 func :: T.Type -> [T.Type] -> T.Type
 func resultType argTypes = T.FunctionType resultType argTypes False
+
+retType :: T.Type -> T.Type
+retType = T.resultType
+
+argTypes :: T.Type -> [T.Type]
+argTypes = T.argumentTypes

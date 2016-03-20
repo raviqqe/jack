@@ -13,6 +13,8 @@ import Control.Applicative
 import LLVM.General.AST
 import LLVM.General.AST.Global
 
+import Codegen.Type
+
 
 
 newtype ModuleMaker a = ModuleMaker { unModuleMaker :: State Module a }
@@ -38,25 +40,33 @@ deleteDefinition name = do
     haveSameName (TypeDefinition (Name oldName) _) | oldName == name = False
     haveSameName _ = True
 
-define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> ModuleMaker ()
-define retType funcName args body = do
+define :: Type -> String -> [Name] -> [BasicBlock] -> ModuleMaker ()
+define funcType funcName argNames body = do
+  assert (length (argTypes funcType) == length argNames)
+         "Numbers of argument types and arguments don't match."
+
   deleteDefinition funcName
   addDefinition $ GlobalDefinition $ functionDefaults {
     name = Name funcName,
-    parameters = ([Parameter argType name [] | (argType, name) <- args],
+    parameters = ([Parameter argType argName []
+                   | (argName, argType) <- zip argNames (argTypes funcType)],
                   False),
-    returnType = retType,
+    returnType = retType funcType,
     basicBlocks = body
   }
 
-declare :: Type -> String -> [(Type, Name)] -> ModuleMaker ()
-declare retType funcName args = do
+declare :: Type -> String -> [Name] -> ModuleMaker ()
+declare funcType funcName argNames = do
+  assert (length (argTypes funcType) == length argNames)
+         "Numbers of argument types and arguments don't match."
+
   deleteDefinition funcName
   addDefinition $ GlobalDefinition $ functionDefaults {
     name = Name funcName,
-    parameters = ([Parameter argType name [] | (argType, name) <- args],
+    parameters = ([Parameter argType argName []
+                   | (argName, argType) <- zip argNames (argTypes funcType)],
                   False),
-    returnType = retType,
+    returnType = retType funcType,
     basicBlocks = []
   }
 
@@ -64,3 +74,6 @@ typeDef :: String -> Type -> ModuleMaker ()
 typeDef name newType = do
   deleteDefinition name
   addDefinition $ TypeDefinition (Name name) (Just newType)
+
+assert :: Bool -> String -> ModuleMaker ()
+assert bool errorMessage = when (not bool) (fail errorMessage)

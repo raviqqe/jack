@@ -37,17 +37,20 @@ codegen mod toplevels = withContext $ \context -> do
       M.moduleAST modObj
 
 codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
-codegenToplevel (Right (S.STermDef name argNames body)) = do
-  define float name args blocks
+codegenToplevel (Right (S.STermDef name args body)) = do
+  define funcType name argNames blocks
   where
-    args = toSignatures argNames
+    funcType = func float $ replicate (length args) float
+    argNames = map Name args
     blocks = blocksInFunc $ ret =<< codegenExpr body
-codegenToplevel (Right (S.SImport name argNames)) = declare float name args
+codegenToplevel (Right (S.SImport name args)) = declare funcType name argNames
   where
-    args = toSignatures argNames
+    funcType = func float $ replicate (length args) float
+    argNames = map Name args
 codegenToplevel (Left expression)
-  = define float toplevelExprFuncName [] blocks
+  = define funcType toplevelExprFuncName [] blocks
   where
+    funcType = func float []
     blocks = blocksInFunc $ ret =<< codegenExpr expression
 
 codegenExpr :: S.Expr -> FuncMaker Operand
@@ -82,9 +85,6 @@ true :: Operand
 true  = constant $ C.Float (F.Double 1.0)
 false :: Operand
 false = constant $ C.Float (F.Double 0.0)
-
-toSignatures :: [String] -> [(Type, Name)]
-toSignatures = map (\name -> (float, Name name))
 
 assemblyFromModule :: Module -> IO String
 assemblyFromModule mod = do
