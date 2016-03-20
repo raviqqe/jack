@@ -5,13 +5,15 @@ module Codegen.ModuleMaker (
   runModuleMaker,
   define,
   declare,
-  typeDef
+  typeDef,
+  globalConst
 ) where
 
 import Control.Monad.State
 import Control.Applicative
 import LLVM.General.AST
-import LLVM.General.AST.Global
+import LLVM.General.AST.Constant
+import LLVM.General.AST.Global as G
 
 import Codegen.Type
 
@@ -74,6 +76,16 @@ typeDef :: String -> Type -> ModuleMaker ()
 typeDef name newType = do
   deleteDefinition name
   addDefinition $ TypeDefinition (Name name) (Just newType)
+
+globalConst :: String -> Type -> Constant -> ModuleMaker ()
+globalConst name constType constant = do
+  deleteDefinition name
+  addDefinition $ GlobalDefinition $ globalVariableDefaults {
+    G.name = Name name,
+    G.isConstant = True,
+    G.type' = constType,
+    G.initializer = Just constant
+  }
 
 assert :: Bool -> String -> ModuleMaker ()
 assert bool errorMessage = when (not bool) (fail errorMessage)
