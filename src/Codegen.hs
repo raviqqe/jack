@@ -10,10 +10,9 @@ import LLVM.General.Context
 import LLVM.General.PassManager
 import qualified LLVM.General.Module as M
 import LLVM.General.AST
-import qualified LLVM.General.AST.Constant as C
-import qualified LLVM.General.AST.Float as F
 import qualified LLVM.General.AST.FloatingPointPredicate as FP
 
+import qualified Codegen.Constant as C
 import Codegen.ModuleMaker
 import Codegen.FuncMaker
 import Codegen.InitialModule
@@ -21,6 +20,7 @@ import Codegen.Instruction
 import Codegen.Pass
 import Codegen.Type
 import Constant
+import Name.Mangle
 import Util
 import qualified Syntax as S
 
@@ -37,12 +37,20 @@ codegen mod toplevels = withContext $ \context -> do
       M.moduleAST modObj
 
 codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
-codegenToplevel (Right (S.STermDef name args body)) = do
-  define funcType name args blocks
+codegenToplevel (Right (S.STermDef funcName args body)) = do
+  define funcType funcName args blocks
+  typeDef (closureEnvTypeName funcName) $ struct []
+  globalConst (closureName funcName) (typeRef closureTypeName) closure
   where
     funcType = func float $ replicate (length args) float
     blocks = blocksInFunc $ ret =<< codegenExpr body
-codegenToplevel (Right (S.SImport name args)) = declare funcType name args
+    closure = C.struct closureTypeName
+                       [asBytePtr $ C.globalRef (Name funcName),
+                        C.nullptr (ptr byte)]
+      where
+        asBytePtr pointer = C.ptrtoptr pointer (ptr byte)
+codegenToplevel (Right (S.SImport funcName args))
+  = declare funcType funcName args
   where
     funcType = func float $ replicate (length args) float
 codegenToplevel (Left expression)
@@ -53,7 +61,7 @@ codegenToplevel (Left expression)
 
 codegenExpr :: S.Expr -> FuncMaker Operand
 codegenExpr (S.EVar varName) = return $ localRef (Name varName)
-codegenExpr (S.ENum num) = (return . constant . C.Float . F.Double) num
+codegenExpr (S.ENum num) = (return . constant . C.float) num
 codegenExpr (S.ECall functionName args) = do
   call (globalRef (Name functionName)) =<< mapM codegenExpr args
 codegenExpr (S.EIf cond exprIfTrue exprIfFalse) = do
@@ -80,9 +88,9 @@ codegenExpr (S.EBool True) = return true
 codegenExpr (S.EBool False) = return false
 
 true :: Operand
-true  = constant $ C.Float (F.Double 1.0)
+true  = constant $ C.float 1.0
 false :: Operand
-false = constant $ C.Float (F.Double 0.0)
+false = constant $ C.float 0.0
 
 assemblyFromModule :: Module -> IO String
 assemblyFromModule mod = do

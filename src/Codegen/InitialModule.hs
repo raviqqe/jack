@@ -22,6 +22,8 @@ initialModule name = runModuleMaker (defaultModule { moduleName = name }) $ do
 
   declare (func (ptr byte) [int]) "malloc" ["x"]
   declare (func void [ptr byte])  "free"   ["x"]
+
+  declare (func (typeRef closureTypeName) []) "dummy_to_keep_closure_type" []
   where
     floatUnaryOpType = func float [float]
     floatBinOpType = func float [float, float]
