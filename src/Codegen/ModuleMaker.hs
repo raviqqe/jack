@@ -77,8 +77,8 @@ typeDef name newType = do
   deleteDefinition name
   addDefinition $ TypeDefinition (Name name) (Just newType)
 
-globalConst :: String -> Type -> Constant -> ModuleMaker ()
-globalConst name constType constant = do
+globalConst :: Type -> String -> Constant -> ModuleMaker ()
+globalConst constType name constant = do
   deleteDefinition name
   addDefinition $ GlobalDefinition $ globalVariableDefaults {
     G.name = Name name,

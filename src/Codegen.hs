@@ -40,7 +40,7 @@ codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
 codegenToplevel (Right (S.STermDef funcName args body)) = do
   define funcType funcName args blocks
   typeDef (closureEnvTypeName funcName) $ struct []
-  globalConst (closureName funcName) (typeRef closureTypeName) closure
+  globalConst (typeRef closureTypeName) (closureName funcName) closure
   where
     funcType = func float $ replicate (length args) float
     blocks = blocksInFunc $ ret =<< codegenExpr body
