@@ -7,12 +7,15 @@ import LLVM.General.AST
 
 import Codegen.ModuleMaker
 import Codegen.Type
+import Constant
 import Name.Mangle
 
 
 
 initialModule :: String -> Module
 initialModule name = runModuleMaker (defaultModule { moduleName = name }) $ do
+  typeDef closureTypeName $ struct [ptr byte, ptr byte]
+
   declare floatUnaryOpType (unaryOpFuncName "-") ["x"]
   forM_ ["+", "-", "*", "/"] $ \opName -> do
     declare floatBinOpType (binaryOpFuncName opName) ["x", "y"]

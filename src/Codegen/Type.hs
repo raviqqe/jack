@@ -10,9 +10,12 @@ module Codegen.Type (
   func,
 
   argTypes,
-  retType
+  retType,
+
+  typeRef
 ) where
 
+import LLVM.General.AST.Name
 import qualified LLVM.General.AST.Type as T
 
 
@@ -46,3 +49,6 @@ retType = T.resultType
 
 argTypes :: T.Type -> [T.Type]
 argTypes = T.argumentTypes
+
+typeRef :: String -> T.Type
+typeRef = T.NamedTypeReference . Name
