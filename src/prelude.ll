@@ -1,4 +1,4 @@
-; ModuleID = 'library.ll'
+; ModuleID = 'prelude.ll'
 
 define double @"unary.-"(double %x) {
 entry:
