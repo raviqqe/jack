@@ -38,15 +38,13 @@ codegen mod toplevels = withContext $ \context -> do
 
 codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
 codegenToplevel (Right (S.STermDef name args body)) = do
-  define funcType name argNames blocks
+  define funcType name args blocks
   where
     funcType = func float $ replicate (length args) float
-    argNames = map Name args
     blocks = blocksInFunc $ ret =<< codegenExpr body
-codegenToplevel (Right (S.SImport name args)) = declare funcType name argNames
+codegenToplevel (Right (S.SImport name args)) = declare funcType name args
   where
     funcType = func float $ replicate (length args) float
-    argNames = map Name args
 codegenToplevel (Left expression)
   = define funcType toplevelExprFuncName [] blocks
   where

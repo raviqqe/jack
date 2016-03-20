@@ -40,7 +40,7 @@ deleteDefinition name = do
     haveSameName (TypeDefinition (Name oldName) _) | oldName == name = False
     haveSameName _ = True
 
-define :: Type -> String -> [Name] -> [BasicBlock] -> ModuleMaker ()
+define :: Type -> String -> [String] -> [BasicBlock] -> ModuleMaker ()
 define funcType funcName argNames body = do
   assert (length (argTypes funcType) == length argNames)
          "Numbers of argument types and arguments don't match."
@@ -48,14 +48,14 @@ define funcType funcName argNames body = do
   deleteDefinition funcName
   addDefinition $ GlobalDefinition $ functionDefaults {
     name = Name funcName,
-    parameters = ([Parameter argType argName []
+    parameters = ([Parameter argType (Name argName) []
                    | (argName, argType) <- zip argNames (argTypes funcType)],
                   False),
     returnType = retType funcType,
     basicBlocks = body
   }
 
-declare :: Type -> String -> [Name] -> ModuleMaker ()
+declare :: Type -> String -> [String] -> ModuleMaker ()
 declare funcType funcName argNames = do
   assert (length (argTypes funcType) == length argNames)
          "Numbers of argument types and arguments don't match."
@@ -63,7 +63,7 @@ declare funcType funcName argNames = do
   deleteDefinition funcName
   addDefinition $ GlobalDefinition $ functionDefaults {
     name = Name funcName,
-    parameters = ([Parameter argType argName []
+    parameters = ([Parameter argType (Name argName) []
                    | (argName, argType) <- zip argNames (argTypes funcType)],
                   False),
     returnType = retType funcType,
