@@ -98,13 +98,16 @@ store value pointer = noOpInstruction $ Store False pointer value Nothing 0 []
 load :: Operand -> FuncMaker Operand
 load pointer = instruction $ Load False pointer Nothing 0 []
 
+
+-- Heap
+
 malloc :: Type -> FuncMaker Operand
 malloc typ = do
   size <- sizeof typ
-  call (globalRef (Name "malloc")) [size]
+  call (globalRef $ Name "malloc") [size]
 
 free :: Operand -> FuncMaker ()
-free pointer = M.void $ call (globalRef (Name "free")) [pointer]
+free pointer = M.void $ call (globalRef $ Name "free") [pointer]
 
 sizeof :: Type -> FuncMaker Operand
 sizeof typ = do
