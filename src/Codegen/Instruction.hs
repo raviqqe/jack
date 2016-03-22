@@ -21,6 +21,7 @@ module Codegen.Instruction (
   ret,
   phi,
 
+  getelementptr,
   extractvalue,
 
   localRef,
@@ -113,10 +114,6 @@ sizeof typ = do
     nullPointer = constant $ C.Null $ ptr typ
     one = constant (C.Int 32 1)
 
-getelementptr :: Operand -> [Operand] -> FuncMaker Operand
-getelementptr basePointer indices
-  = instruction $ GetElementPtr False basePointer indices []
-
 
 -- Conversion
 
@@ -144,6 +141,10 @@ phi typ valueBlockPairs = instruction $ Phi typ valueBlockPairs []
 
 
 -- Aggregate value
+
+getelementptr :: Operand -> [Operand] -> FuncMaker Operand
+getelementptr basePointer indices
+  = instruction $ GetElementPtr False basePointer indices []
 
 extractvalue :: Operand -> [Word32] -> FuncMaker Operand
 extractvalue aggregateValue indices
