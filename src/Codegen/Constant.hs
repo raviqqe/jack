@@ -2,6 +2,7 @@ module Codegen.Constant (
   struct,
   ptrtoptr,
   int,
+  int32,
   float,
   nullptr,
   globalRef
@@ -24,6 +25,9 @@ struct name elems = Struct (Just $ Name name) False elems
 
 int :: Integer -> Constant
 int num = C.Int 64 num
+
+int32 :: Integer -> Constant
+int32 num = C.Int 32 num
 
 float :: Double -> Constant
 float = C.Float . Double
