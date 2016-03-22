@@ -21,10 +21,13 @@ module Codegen.Instruction (
   ret,
   phi,
 
+  extractvalue,
+
   localRef,
   globalRef
 ) where
 
+import Data.Word
 import qualified Control.Monad as M
 import LLVM.General.AST
 import qualified LLVM.General.AST.Constant as C
@@ -138,6 +141,13 @@ ret value = terminator $ Do $ Ret (Just value) []
 
 phi :: Type -> [(Operand, Name)] -> FuncMaker Operand
 phi typ valueBlockPairs = instruction $ Phi typ valueBlockPairs []
+
+
+-- Aggregate value
+
+extractvalue :: Operand -> [Word32] -> FuncMaker Operand
+extractvalue aggregateValue indices
+  = instruction $ ExtractValue aggregateValue indices []
 
 
 -- References
