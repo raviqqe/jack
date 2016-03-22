@@ -1,6 +1,7 @@
 module Codegen.Constant (
   struct,
   ptrtoptr,
+  int,
   float,
   nullptr,
   globalRef
@@ -20,6 +21,9 @@ ptrtoptr pointer destPointerType
 
 struct :: String -> [Constant] -> Constant
 struct name elems = Struct (Just $ Name name) False elems
+
+int :: Integer -> Constant
+int num = C.Int 64 num
 
 float :: Double -> Constant
 float = C.Float . Double
