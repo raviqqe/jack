@@ -38,11 +38,11 @@ codegen mod toplevels = withContext $ \context -> do
 
 codegenToplevel :: Either S.Expr S.Statement -> ModuleMaker ()
 codegenToplevel (Right (S.STermDef funcName args body)) = do
-  define funcType funcName args blocks
+  define funcType funcName (envArg:args) blocks
   typeDef (closureEnvTypeName funcName) $ struct []
   globalConst (typeRef closureTypeName) (closureName funcName) closure
   where
-    funcType = func float $ replicate (length args) float
+    funcType = func float $ (ptr byte:replicate (length args) float)
     blocks = blocksInFunc $ ret =<< codegenExpr body
     closure = C.struct closureTypeName
                        [asBytePtr $ C.globalRef (Name funcName),
@@ -62,8 +62,23 @@ codegenToplevel (Left expression)
 codegenExpr :: S.Expr -> FuncMaker Operand
 codegenExpr (S.EVar varName) = return $ localRef (Name varName)
 codegenExpr (S.ENum num) = (return . constant . C.float) num
-codegenExpr (S.ECall functionName args) = do
-  call (globalRef (Name functionName)) =<< mapM codegenExpr args
+codegenExpr (S.ECall funcName args) = do
+  let closurePointer = globalRef (Name $ closureName funcName)
+  funcPointer <- getClosureFuncPointer closurePointer
+  closureEnvPointer <- getClosureEnvPointer closurePointer
+  evaluatedArgs <- mapM codegenExpr args
+  call funcPointer (closureEnvPointer:evaluatedArgs)
+  where
+    getClosureFuncPointer closurePointer = do
+      voidPointer <- load =<< getelementptr closurePointer
+                                            [constant $ C.int 0,
+                                             constant $ C.int32 0]
+      bitcast voidPointer funcPointerType
+    getClosureEnvPointer closurePointer = do
+      load =<< getelementptr closurePointer [constant $ C.int 0,
+                                             constant $ C.int32 1]
+    funcPointerType = ptr $ func float
+                          $ (ptr byte:replicate (length args) float)
 codegenExpr (S.EIf cond exprIfTrue exprIfFalse) = do
   thenBlock <- addBlock "if.then"
   elseBlock <- addBlock "if.else"
