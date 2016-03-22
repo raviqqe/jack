@@ -14,6 +14,8 @@ module Codegen.Instruction (
   malloc,
   free,
 
+  bitcast,
+
   br,
   condbr,
   ret,
@@ -114,6 +116,9 @@ getelementptr basePointer indices
 
 
 -- Conversion
+
+bitcast :: Operand -> Type -> FuncMaker Operand
+bitcast operand typ = instruction $ BitCast operand typ []
 
 ptrtoint :: Operand -> FuncMaker Operand
 ptrtoint pointer = instruction $ PtrToInt pointer int []
